@@ -181,6 +181,22 @@
             overflow: hidden;
         }
         
+        /* 4cm 높이 라벨 */
+        .label.size-40mm {
+            height: 40mm;
+        }
+        
+        .size-selection {
+            margin: 20px 0;
+            padding: 10px;
+            background: #e9ecef;
+            border-radius: 5px;
+        }
+        
+        .size-selection label {
+            margin-right: 10px;
+        }
+        
         .label-content {
             position: absolute;
             top: 0;
@@ -321,6 +337,11 @@
                 color-adjust: exact;
             }
             
+            /* 4cm 높이 라벨 인쇄 시 */
+            .label.size-40mm {
+                height: 40mm;
+            }
+            
             /* 텍스트 스타일 유지 */
             .sample-number,
             .variety-name {
@@ -359,6 +380,18 @@
                 </label>
             </div>
             
+            <div class="size-selection">
+                <label style="font-weight: bold; margin-right: 20px;">라벨 크기:</label>
+                <label>
+                    <input type="radio" name="label-size" value="50mm" checked>
+                    7cm × 5cm
+                </label>
+                <label style="margin-left: 20px;">
+                    <input type="radio" name="label-size" value="40mm">
+                    7cm × 4cm
+                </label>
+            </div>
+            
             <div id="text-input" class="input-panel active">
                 <textarea id="text-data" placeholder="시료번호,품종명&#10;RDA001,일품벼&#10;RDA002,신동진&#10;RDA003,삼광&#10;..."></textarea>
             </div>
@@ -379,7 +412,9 @@
                 </label>
                 <input type="file" id="bg-image" accept="image/*">
                 <span class="help-text">
-                    권장 크기: 551 x 394 픽셀 (200DPI 기준 7cm x 5cm)<br>
+                    권장 크기 (200DPI 기준):<br>
+                    • 7cm × 5cm: 551 × 394 픽셀<br>
+                    • 7cm × 4cm: 551 × 315 픽셀<br>
                     ※ 다른 비율의 이미지도 자동으로 조절됩니다.
                 </span>
             </div>
@@ -503,6 +538,10 @@
             const lines = textData.trim().split('\n');
             let data = [];
             
+            // 선택된 라벨 크기 가져오기
+            const selectedSize = document.querySelector('input[name="label-size"]:checked').value;
+            const isSmallSize = selectedSize === '40mm';
+            
             lines.forEach(line => {
                 const parts = line.split(',');
                 if (parts.length >= 1) {
@@ -522,7 +561,9 @@
             const previewContainer = document.getElementById('preview');
             previewContainer.innerHTML = '';
             
-            const labelsPerPage = 10;
+            // 페이지당 라벨 수 계산 (4cm일 경우 세로로 6개, 5cm일 경우 5개)
+            const labelsPerColumn = isSmallSize ? 6 : 5;
+            const labelsPerPage = labelsPerColumn * 2; // 가로 2개
             const totalPages = Math.ceil(data.length / labelsPerPage);
             
             for (let page = 0; page < totalPages; page++) {
@@ -534,7 +575,7 @@
                 
                 for (let i = startIdx; i < endIdx; i++) {
                     const label = document.createElement('div');
-                    label.className = 'label';
+                    label.className = isSmallSize ? 'label size-40mm' : 'label';
                     
                     // 배경 이미지가 있으면 적용 (비율 관계없이 꽉 차게)
                     if (backgroundImage) {
@@ -549,10 +590,20 @@
                     sampleNumber.className = 'sample-number';
                     sampleNumber.textContent = data[i].sampleNumber;
                     
+                    // 4cm일 경우 시료번호 위치 조정
+                    if (isSmallSize) {
+                        sampleNumber.style.top = '12mm'; // 1.2cm
+                    }
+                    
                     const varietyName = document.createElement('div');
                     varietyName.className = 'variety-name';
                     if (data[i].varietyName) {
                         varietyName.textContent = `(${data[i].varietyName})`;
+                    }
+                    
+                    // 4cm일 경우 품종명 위치 조정
+                    if (isSmallSize) {
+                        varietyName.style.top = '20mm'; // 2cm
                     }
                     
                     content.appendChild(sampleNumber);
@@ -572,7 +623,8 @@
                 previewContainer.appendChild(pageDiv);
             }
             
-            alert(`총 ${data.length}개의 라벨이 생성되었습니다. (${totalPages} 페이지)`);
+            const sizeText = isSmallSize ? '7cm × 4cm' : '7cm × 5cm';
+            alert(`총 ${data.length}개의 라벨이 생성되었습니다. (${totalPages} 페이지, ${sizeText})`);
         }
         
         // 엑셀 템플릿 다운로드
