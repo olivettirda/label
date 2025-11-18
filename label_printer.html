@@ -5,13 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>표찰 인쇄 웹앱</title>
     <style>
-        @font-face {
-            font-family: 'NanumSquare';
-            src: url('NANUMSQUAREEB.TTF') format('truetype');
-        }
-        
-        /* 웹폰트 CDN 폴백 */
-        @import url('https://cdn.rawgit.com/moonspam/NanumSquare/master/nanumsquare.css');
+        /* 웹폰트 CDN */
+        @import url('https://cdn.jsdelivr.net/gh/moonspam/NanumSquare@2.0/nanumsquare.css');
         
         * {
             margin: 0;
@@ -20,7 +15,7 @@
         }
         
         body {
-            font-family: 'NanumSquare', 'NanumSquareEB', sans-serif;
+            font-family: 'NanumSquareEB', 'NanumSquare', sans-serif;
             background: #f0f0f0;
             padding: 20px;
         }
@@ -101,6 +96,13 @@
             display: none;
         }
         
+        .file-input-wrapper .help-text {
+            display: block;
+            margin-top: 5px;
+            font-size: 13px;
+            color: #666;
+        }
+        
         .button-group {
             margin: 20px 0;
             text-align: center;
@@ -166,11 +168,11 @@
             align-content: flex-start;
         }
         
-        /* 라벨 스타일 */
+        /* 라벨 스타일 - 절취선 추가 */
         .label {
             width: 70mm;
             height: 50mm;
-            border: 0.5px solid #ddd;
+            border: 2px dashed #999;  /* 절취선 스타일 */
             position: relative;
             background-size: cover;
             background-position: center;
@@ -202,6 +204,9 @@
             white-space: nowrap;
             overflow: hidden;
             z-index: 2;
+            background: rgba(255, 255, 255, 0.8);
+            padding: 2px 4px;
+            border-radius: 3px;
         }
         
         .variety-name {
@@ -214,6 +219,9 @@
             white-space: nowrap;
             overflow: hidden;
             z-index: 2;
+            background: rgba(255, 255, 255, 0.8);
+            padding: 2px 4px;
+            border-radius: 3px;
         }
         
         .instructions {
@@ -233,7 +241,7 @@
             color: #856404;
         }
         
-        /* 인쇄 스타일 - 완전히 새로 작성 */
+        /* 인쇄 스타일 */
         @media print {
             @page {
                 size: A4;
@@ -301,11 +309,11 @@
                 page-break-after: auto;
             }
             
-            /* 라벨 스타일 유지 */
+            /* 라벨 절취선 유지 */
             .label {
                 width: 70mm;
                 height: 50mm;
-                border: 0.5px solid #999;
+                border: 2px dashed #666;  /* 인쇄 시 절취선 */
                 position: relative;
                 page-break-inside: avoid;
                 -webkit-print-color-adjust: exact;
@@ -332,9 +340,9 @@
             <h3>📌 사용 방법</h3>
             <p>1. 엑셀 템플릿을 다운로드하거나 직접 텍스트로 입력하세요.</p>
             <p>2. 텍스트 입력 시: 각 줄에 "시료번호,품종명" 형식으로 입력 (쉼표로 구분)</p>
-            <p>3. 폰트 파일(NANUMSQUAREEB.TTF)과 배경 이미지(labelback.png)를 업로드하세요.</p>
+            <p>3. 배경 이미지를 업로드하세요. (선택사항)</p>
             <p>4. 미리보기를 확인하고 인쇄하세요.</p>
-            <p>※ 인쇄가 안 될 경우: Ctrl+P (Windows) / Cmd+P (Mac) 또는 PDF 다운로드를 사용하세요.</p>
+            <p>※ 인쇄 시 절취선을 따라 자르시면 됩니다.</p>
         </div>
         
         <div class="input-section no-print">
@@ -366,17 +374,14 @@
             </div>
             
             <div class="file-input-wrapper">
-                <label for="font-file">
-                    🔤 폰트 파일 업로드 (NANUMSQUAREEB.TTF)
-                </label>
-                <input type="file" id="font-file" accept=".ttf,.otf">
-            </div>
-            
-            <div class="file-input-wrapper">
                 <label for="bg-image">
-                    🖼️ 배경 이미지 업로드 (labelback.png)
+                    🖼️ 배경 이미지 업로드 (선택사항)
                 </label>
                 <input type="file" id="bg-image" accept="image/*">
+                <span class="help-text">
+                    권장 크기: 551 x 394 픽셀 (200DPI 기준 7cm x 5cm)<br>
+                    ※ 다른 비율의 이미지도 자동으로 조절됩니다.
+                </span>
             </div>
             
             <div class="button-group">
@@ -399,7 +404,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script>
         let backgroundImage = '';
-        let customFont = null;
         
         // 입력 방식 전환
         document.querySelectorAll('input[name="input-type"]').forEach(radio => {
@@ -416,31 +420,16 @@
             });
         });
         
-        // 폰트 파일 업로드
-        document.getElementById('font-file').addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const fontData = e.target.result;
-                    const fontFace = new FontFace('CustomFont', fontData);
-                    fontFace.load().then(function(loadedFace) {
-                        document.fonts.add(loadedFace);
-                        customFont = 'CustomFont';
-                        alert('폰트가 성공적으로 로드되었습니다.');
-                    }).catch(function(error) {
-                        console.error('폰트 로드 실패:', error);
-                        alert('폰트 로드에 실패했습니다.');
-                    });
-                };
-                reader.readAsArrayBuffer(file);
-            }
-        });
-        
-        // 배경 이미지 업로드
+        // 배경 이미지 업로드 - 모든 이미지 허용
         document.getElementById('bg-image').addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (file) {
+                // 이미지 파일인지 확인
+                if (!file.type.startsWith('image/')) {
+                    alert('이미지 파일만 업로드 가능합니다.');
+                    return;
+                }
+                
                 const reader = new FileReader();
                 reader.onload = function(e) {
                     backgroundImage = e.target.result;
@@ -489,8 +478,8 @@
             testSpan.style.position = 'absolute';
             testSpan.style.visibility = 'hidden';
             testSpan.style.whiteSpace = 'nowrap';
-            testSpan.style.fontFamily = element.style.fontFamily || 'NanumSquare';
-            testSpan.style.fontWeight = element.style.fontWeight || 'normal';
+            testSpan.style.fontFamily = 'NanumSquareEB';
+            testSpan.style.fontWeight = element.style.fontWeight || 'bold';
             testSpan.textContent = element.textContent;
             document.body.appendChild(testSpan);
             
@@ -546,8 +535,11 @@
                 for (let i = startIdx; i < endIdx; i++) {
                     const label = document.createElement('div');
                     label.className = 'label';
+                    
+                    // 배경 이미지가 있으면 적용 (비율 관계없이 꽉 차게)
                     if (backgroundImage) {
                         label.style.backgroundImage = `url(${backgroundImage})`;
+                        label.style.backgroundSize = '100% 100%';  // 비율 무시하고 꽉 채우기
                     }
                     
                     const content = document.createElement('div');
@@ -556,17 +548,11 @@
                     const sampleNumber = document.createElement('div');
                     sampleNumber.className = 'sample-number';
                     sampleNumber.textContent = data[i].sampleNumber;
-                    if (customFont) {
-                        sampleNumber.style.fontFamily = customFont;
-                    }
                     
                     const varietyName = document.createElement('div');
                     varietyName.className = 'variety-name';
                     if (data[i].varietyName) {
                         varietyName.textContent = `(${data[i].varietyName})`;
-                    }
-                    if (customFont) {
-                        varietyName.style.fontFamily = customFont;
                     }
                     
                     content.appendChild(sampleNumber);
@@ -596,7 +582,9 @@
                 ['25301', '남평'],
                 ['25303', '영호진미'],
                 ['25304', '삼광'],
-                ['15302', '한아름4호']
+                ['15302', '한아름4호'],
+                ['45301', '금오'],
+                ['55302', '백옥찰']
             ];
             
             const ws = XLSX.utils.aoa_to_sheet(ws_data);
@@ -657,9 +645,26 @@
 25304,삼광
 25310,YR34567-2B-10-1
 25311,YR34567-2B-12-1
+25312,YR34567-2B-15-1
+25316,YR35216Acp1
+25317,YR35216Acp2
+25318,YR35216Acp3
+25319,YR33833-2B-2-1
+25320,YR33833-2B-3-1
+25321,YR33833-2B-5-1
+15301,다산
 15302,한아름4호
+15303,금강1호
 45301,금오
-55302,백옥찰`;
+45367,조평
+45303,해담쌀
+45601,풍미
+45602,고시히카리
+45603,삼덕
+55301,남평
+55302,백옥찰
+55303,신길
+55304,미호`;
             document.getElementById('text-data').value = sampleData;
         });
     </script>
