@@ -173,10 +173,6 @@
             height: 50mm;
             border: 0.5px solid #ddd;
             position: relative;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
@@ -185,20 +181,46 @@
         }
         
         .label-content {
-            text-align: center;
-            width: calc(100% - 6mm);
-            position: relative;
-            z-index: 1;
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            padding: 3mm;
+            padding-bottom: 10mm; /* 하단 1cm 여백 */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
         
         .sample-number {
             font-weight: bold;
             line-height: 1.2;
-            margin-bottom: 2px;
+            text-align: center;
+            position: absolute;
+            top: 15mm; /* 시료번호 위치 고정 (라벨 높이 50mm의 약 30% 지점) */
+            left: 3mm;
+            right: 3mm;
+            z-index: 2;
         }
         
         .variety-name {
             line-height: 1.2;
+            text-align: center;
+            position: absolute;
+            top: 22mm; /* 시료번호 아래 고정 위치 */
+            left: 3mm;
+            right: 3mm;
+            bottom: 10mm; /* 하단 1cm 여백 확보 */
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            z-index: 2;
+        }
+        
+        .variety-text {
+            display: inline-block;
+            word-break: break-word;
         }
         
         /* 인쇄 스타일 */
@@ -391,9 +413,15 @@
                     
                     // 데이터를 텍스트 형식으로 변환
                     let textData = '';
-                    jsonData.slice(1).forEach(row => {
-                        if (row[0] && row[1]) {
-                            textData += `${row[0]},${row[1]}\n`;
+                    jsonData.forEach((row, index) => {
+                        // 헤더 행 건너뛰기 (첫 행이 '시료번호' 등의 헤더인 경우)
+                        if (index === 0 && row[0] === '시료번호') {
+                            return;
+                        }
+                        if (row[0]) {
+                            const sampleNum = String(row[0]).trim();
+                            const variety = row[1] ? String(row[1]).trim() : '';
+                            textData += `${sampleNum},${variety}\n`;
                         }
                     });
                     
@@ -404,29 +432,60 @@
             }
         });
         
-        // 텍스트 크기 자동 조정
-        function adjustTextSize(element, maxWidth, maxHeight, maxSize, minSize) {
+        // 품종명 텍스트 크기 조정 (하단 여백 침범 방지)
+        function adjustVarietyTextSize(element, maxWidth, maxHeight, maxSize, minSize) {
+            const textSpan = element.querySelector('.variety-text');
+            let fontSize = maxSize;
+            textSpan.style.fontSize = fontSize + 'pt';
+            
+            // 높이와 너비가 모두 제한 내에 들어올 때까지 크기 줄이기
+            while (fontSize > minSize) {
+                if (textSpan.scrollWidth <= maxWidth && textSpan.scrollHeight <= maxHeight) {
+                    break;
+                }
+                fontSize -= 0.5;
+                textSpan.style.fontSize = fontSize + 'pt';
+            }
+            
+            // 텍스트가 너무 길면 두 줄로 나누기
+            if (fontSize <= 16 && textSpan.scrollHeight > maxHeight / 2) {
+                const text = textSpan.textContent.replace(/[()]/g, '');
+                const words = text.split(/\s+/);
+                
+                // 단어가 없으면 문자 단위로 나누기
+                if (words.length <= 1) {
+                    const chars = text;
+                    const midPoint = Math.ceil(chars.length / 2);
+                    textSpan.innerHTML = `(${chars.substring(0, midPoint)}<br>${chars.substring(midPoint)})`;
+                } else {
+                    const midPoint = Math.ceil(words.length / 2);
+                    const line1 = words.slice(0, midPoint).join(' ');
+                    const line2 = words.slice(midPoint).join(' ');
+                    textSpan.innerHTML = `(${line1}<br>${line2})`;
+                }
+                
+                // 다시 크기 조정
+                while (fontSize > minSize && textSpan.scrollHeight > maxHeight) {
+                    fontSize -= 0.5;
+                    textSpan.style.fontSize = fontSize + 'pt';
+                }
+            }
+            
+            return fontSize;
+        }
+        
+        // 시료번호 텍스트 크기 조정 (위치는 고정)
+        function adjustSampleTextSize(element, maxWidth, maxSize, minSize) {
             let fontSize = maxSize;
             element.style.fontSize = fontSize + 'pt';
             
+            // 너비가 제한 내에 들어올 때까지 크기 줄이기
             while (fontSize > minSize) {
-                if (element.scrollWidth <= maxWidth && element.scrollHeight <= maxHeight) {
+                if (element.scrollWidth <= maxWidth) {
                     break;
                 }
                 fontSize -= 0.5;
                 element.style.fontSize = fontSize + 'pt';
-            }
-            
-            // 두 줄로 나누기 처리
-            if (element.scrollHeight > maxHeight / 2 && element.classList.contains('variety-name')) {
-                const text = element.textContent.replace(/[()]/g, '');
-                const words = text.split(' ');
-                if (words.length > 1) {
-                    const midPoint = Math.ceil(words.length / 2);
-                    const line1 = words.slice(0, midPoint).join(' ');
-                    const line2 = words.slice(midPoint).join(' ');
-                    element.innerHTML = `(${line1}<br>${line2})`;
-                }
             }
             
             return fontSize;
@@ -437,19 +496,17 @@
             const inputType = document.querySelector('input[name="input-type"]:checked').value;
             let data = [];
             
-            if (inputType === 'text') {
-                const textData = document.getElementById('text-data').value;
-                const lines = textData.trim().split('\n');
-                lines.forEach(line => {
-                    const parts = line.split(',');
-                    if (parts.length >= 2) {
-                        data.push({
-                            sampleNumber: parts[0].trim(),
-                            varietyName: parts[1].trim()
-                        });
-                    }
-                });
-            }
+            const textData = document.getElementById('text-data').value;
+            const lines = textData.trim().split('\n');
+            lines.forEach(line => {
+                const parts = line.split(',');
+                if (parts.length >= 1) {
+                    data.push({
+                        sampleNumber: parts[0].trim(),
+                        varietyName: parts[1] ? parts[1].trim() : ''
+                    });
+                }
+            });
             
             if (data.length === 0) {
                 alert('데이터를 입력해주세요.');
@@ -496,11 +553,15 @@
                     
                     const varietyName = document.createElement('div');
                     varietyName.className = 'variety-name';
-                    varietyName.textContent = `(${data[i].varietyName})`;
+                    
+                    const varietyText = document.createElement('span');
+                    varietyText.className = 'variety-text';
+                    varietyText.textContent = data[i].varietyName ? `(${data[i].varietyName})` : '';
                     if (customFont) {
-                        varietyName.style.fontFamily = customFont;
+                        varietyText.style.fontFamily = customFont;
                     }
                     
+                    varietyName.appendChild(varietyText);
                     content.appendChild(sampleNumber);
                     content.appendChild(varietyName);
                     label.appendChild(content);
@@ -509,10 +570,15 @@
                     // 텍스트 크기 조정
                     setTimeout(() => {
                         const maxWidth = 64 * 3.78; // 64mm to pixels (약 3.78 pixels per mm)
-                        const maxHeight = 44 * 3.78; // 44mm to pixels
+                        const maxHeightForVariety = 18 * 3.78; // 품종명 가용 높이 (50mm - 22mm(위) - 10mm(아래) = 18mm)
                         
-                        adjustTextSize(sampleNumber, maxWidth, maxHeight/2, 24, 12);
-                        adjustTextSize(varietyName, maxWidth, maxHeight/2, 24, 12);
+                        // 시료번호 크기 조정 (위치는 고정)
+                        adjustSampleTextSize(sampleNumber, maxWidth, 24, 12);
+                        
+                        // 품종명이 있을 때만 크기 조정
+                        if (data[i].varietyName) {
+                            adjustVarietyTextSize(varietyName, maxWidth, maxHeightForVariety, 24, 12);
+                        }
                     }, 10);
                 }
             }
@@ -546,14 +612,14 @@
         
         // 샘플 데이터 로드
         window.addEventListener('load', function() {
-            const sampleData = `RDA001,일품벼
-RDA002,신동진
-RDA003,삼광
-RDA004,호품
-RDA005,운광
-RDA006,오대
-RDA007,새청무
-RDA008,참드림`;
+            const sampleData = `25301,Nampyeong
+25303,Younghojinmi
+25304,Samkwang
+25310,YR34567-2B-10-1
+25311,YR34567-2B-12-1
+25312,YR34567-2B-15-1
+25316,YR35216Acp1
+25317,YR35216Acp2`;
             document.getElementById('text-data').value = sampleData;
         });
     </script>
