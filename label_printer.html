@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>표찰 인쇄 웹앱</title>
+    <style>
+        @font-face {
+            font-family: 'NanumSquare';
+            src: url('NANUMSQUAREEB.TTF') format('truetype');
+        }
+        
+        /* 웹폰트 CDN 폴백 */
+        @import url('https://cdn.rawgit.com/moonspam/NanumSquare/master/nanumsquare.css');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'NanumSquare', 'NanumSquareEB', sans-serif;
+            background: #f0f0f0;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+        }
+        
+        .input-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f9f9f9;
+            border-radius: 5px;
+        }
+        
+        .input-method {
+            margin-bottom: 20px;
+        }
+        
+        .input-method label {
+            display: inline-block;
+            margin-right: 20px;
+            cursor: pointer;
+        }
+        
+        .input-method input[type="radio"] {
+            margin-right: 5px;
+        }
+        
+        .input-panel {
+            display: none;
+            margin-top: 20px;
+        }
+        
+        .input-panel.active {
+            display: block;
+        }
+        
+        textarea {
+            width: 100%;
+            height: 200px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 14px;
+        }
+        
+        .file-input-wrapper {
+            margin: 20px 0;
+        }
+        
+        .file-input-wrapper label {
+            display: inline-block;
+            padding: 10px 20px;
+            background: #007bff;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        
+        .file-input-wrapper input[type="file"] {
+            display: none;
+        }
+        
+        .button-group {
+            margin: 20px 0;
+            text-align: center;
+        }
+        
+        button {
+            padding: 12px 30px;
+            margin: 0 10px;
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        button:hover {
+            background: #218838;
+        }
+        
+        .download-btn {
+            background: #17a2b8;
+        }
+        
+        .download-btn:hover {
+            background: #138496;
+        }
+        
+        .print-btn {
+            background: #dc3545;
+        }
+        
+        .print-btn:hover {
+            background: #c82333;
+        }
+        
+        /* 인쇄 영역 */
+        .preview-section {
+            margin-top: 30px;
+            border-top: 2px solid #ddd;
+            padding-top: 20px;
+        }
+        
+        .preview-controls {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .preview-container {
+            background: white;
+            padding: 20px;
+            border: 1px solid #ddd;
+            overflow: auto;
+            max-height: 600px;
+        }
+        
+        /* A4 페이지 설정 */
+        .page {
+            width: 210mm;
+            min-height: 297mm;
+            padding: 10mm;
+            margin: 0 auto 20px;
+            background: white;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            display: flex;
+            flex-wrap: wrap;
+            align-content: flex-start;
+        }
+        
+        /* 라벨 스타일 */
+        .label {
+            width: 70mm;
+            height: 50mm;
+            border: 0.5px solid #ddd;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            page-break-inside: avoid;
+            overflow: hidden;
+        }
+        
+        .label-content {
+            text-align: center;
+            width: calc(100% - 6mm);
+            position: relative;
+            z-index: 1;
+        }
+        
+        .sample-number {
+            font-weight: bold;
+            line-height: 1.2;
+            margin-bottom: 2px;
+        }
+        
+        .variety-name {
+            line-height: 1.2;
+        }
+        
+        /* 인쇄 스타일 */
+        @media print {
+            body {
+                margin: 0;
+                padding: 0;
+                background: white;
+            }
+            
+            .container,
+            .input-section,
+            .preview-controls,
+            h1,
+            h2,
+            .button-group {
+                display: none !important;
+            }
+            
+            .preview-container {
+                border: none;
+                padding: 0;
+                max-height: none;
+            }
+            
+            .page {
+                margin: 0;
+                padding: 10mm;
+                box-shadow: none;
+                page-break-after: always;
+            }
+            
+            .label {
+                border: 0.1mm solid #ccc;
+            }
+        }
+        
+        .instructions {
+            background: #fff3cd;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        
+        .instructions h3 {
+            margin-bottom: 10px;
+            color: #856404;
+        }
+        
+        .instructions p {
+            margin: 5px 0;
+            color: #856404;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏷️ 표찰 인쇄 웹앱</h1>
+        
+        <div class="instructions">
+            <h3>📌 사용 방법</h3>
+            <p>1. 엑셀 템플릿을 다운로드하거나 직접 텍스트로 입력하세요.</p>
+            <p>2. 텍스트 입력 시: 각 줄에 "시료번호,품종명" 형식으로 입력 (쉼표로 구분)</p>
+            <p>3. 폰트 파일(NANUMSQUAREEB.TTF)과 배경 이미지(labelback.png)를 업로드하세요.</p>
+            <p>4. 미리보기를 확인하고 인쇄하세요.</p>
+        </div>
+        
+        <div class="input-section">
+            <h2>데이터 입력</h2>
+            
+            <div class="input-method">
+                <label>
+                    <input type="radio" name="input-type" value="text" checked>
+                    텍스트 직접 입력
+                </label>
+                <label>
+                    <input type="radio" name="input-type" value="excel">
+                    엑셀 파일 업로드
+                </label>
+            </div>
+            
+            <div id="text-input" class="input-panel active">
+                <textarea id="text-data" placeholder="시료번호,품종명&#10;RDA001,일품벼&#10;RDA002,신동진&#10;RDA003,삼광&#10;..."></textarea>
+            </div>
+            
+            <div id="excel-input" class="input-panel">
+                <div class="file-input-wrapper">
+                    <label for="excel-file">
+                        📁 엑셀 파일 선택 (.xlsx, .csv)
+                    </label>
+                    <input type="file" id="excel-file" accept=".xlsx,.xls,.csv">
+                </div>
+                <button class="download-btn" onclick="downloadTemplate()">📥 엑셀 템플릿 다운로드</button>
+            </div>
+            
+            <div class="file-input-wrapper">
+                <label for="font-file">
+                    🔤 폰트 파일 업로드 (NANUMSQUAREEB.TTF)
+                </label>
+                <input type="file" id="font-file" accept=".ttf,.otf">
+            </div>
+            
+            <div class="file-input-wrapper">
+                <label for="bg-image">
+                    🖼️ 배경 이미지 업로드 (labelback.png)
+                </label>
+                <input type="file" id="bg-image" accept="image/*">
+            </div>
+            
+            <div class="button-group">
+                <button onclick="generateLabels()">🔄 라벨 생성</button>
+                <button class="print-btn" onclick="window.print()">🖨️ 인쇄</button>
+            </div>
+        </div>
+        
+        <div class="preview-section">
+            <h2>미리보기</h2>
+            <div class="preview-container" id="preview">
+                <div class="page" id="labels-container">
+                    <!-- 라벨이 여기에 생성됩니다 -->
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script>
+        let backgroundImage = '';
+        let customFont = null;
+        
+        // 입력 방식 전환
+        document.querySelectorAll('input[name="input-type"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                document.querySelectorAll('.input-panel').forEach(panel => {
+                    panel.classList.remove('active');
+                });
+                
+                if (this.value === 'text') {
+                    document.getElementById('text-input').classList.add('active');
+                } else {
+                    document.getElementById('excel-input').classList.add('active');
+                }
+            });
+        });
+        
+        // 폰트 파일 업로드
+        document.getElementById('font-file').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const fontData = e.target.result;
+                    const fontFace = new FontFace('CustomFont', fontData);
+                    fontFace.load().then(function(loadedFace) {
+                        document.fonts.add(loadedFace);
+                        customFont = 'CustomFont';
+                        alert('폰트가 성공적으로 로드되었습니다.');
+                    }).catch(function(error) {
+                        console.error('폰트 로드 실패:', error);
+                        alert('폰트 로드에 실패했습니다.');
+                    });
+                };
+                reader.readAsArrayBuffer(file);
+            }
+        });
+        
+        // 배경 이미지 업로드
+        document.getElementById('bg-image').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    backgroundImage = e.target.result;
+                    alert('배경 이미지가 로드되었습니다.');
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+        
+        // 엑셀 파일 읽기
+        document.getElementById('excel-file').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, {type: 'array'});
+                    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                    const jsonData = XLSX.utils.sheet_to_json(firstSheet, {header: 1});
+                    
+                    // 데이터를 텍스트 형식으로 변환
+                    let textData = '';
+                    jsonData.slice(1).forEach(row => {
+                        if (row[0] && row[1]) {
+                            textData += `${row[0]},${row[1]}\n`;
+                        }
+                    });
+                    
+                    document.getElementById('text-data').value = textData;
+                    alert('엑셀 데이터가 로드되었습니다.');
+                };
+                reader.readAsArrayBuffer(file);
+            }
+        });
+        
+        // 텍스트 크기 자동 조정
+        function adjustTextSize(element, maxWidth, maxHeight, maxSize, minSize) {
+            let fontSize = maxSize;
+            element.style.fontSize = fontSize + 'pt';
+            
+            while (fontSize > minSize) {
+                if (element.scrollWidth <= maxWidth && element.scrollHeight <= maxHeight) {
+                    break;
+                }
+                fontSize -= 0.5;
+                element.style.fontSize = fontSize + 'pt';
+            }
+            
+            // 두 줄로 나누기 처리
+            if (element.scrollHeight > maxHeight / 2 && element.classList.contains('variety-name')) {
+                const text = element.textContent.replace(/[()]/g, '');
+                const words = text.split(' ');
+                if (words.length > 1) {
+                    const midPoint = Math.ceil(words.length / 2);
+                    const line1 = words.slice(0, midPoint).join(' ');
+                    const line2 = words.slice(midPoint).join(' ');
+                    element.innerHTML = `(${line1}<br>${line2})`;
+                }
+            }
+            
+            return fontSize;
+        }
+        
+        // 라벨 생성
+        function generateLabels() {
+            const inputType = document.querySelector('input[name="input-type"]:checked').value;
+            let data = [];
+            
+            if (inputType === 'text') {
+                const textData = document.getElementById('text-data').value;
+                const lines = textData.trim().split('\n');
+                lines.forEach(line => {
+                    const parts = line.split(',');
+                    if (parts.length >= 2) {
+                        data.push({
+                            sampleNumber: parts[0].trim(),
+                            varietyName: parts[1].trim()
+                        });
+                    }
+                });
+            }
+            
+            if (data.length === 0) {
+                alert('데이터를 입력해주세요.');
+                return;
+            }
+            
+            // 기존 라벨 제거
+            const container = document.getElementById('labels-container');
+            container.innerHTML = '';
+            
+            // A4 페이지당 라벨 수 계산 (가로 2개 x 세로 5개 = 10개)
+            const labelsPerPage = 10;
+            const totalPages = Math.ceil(data.length / labelsPerPage);
+            
+            for (let page = 0; page < totalPages; page++) {
+                let pageDiv;
+                if (page === 0) {
+                    pageDiv = container;
+                } else {
+                    pageDiv = document.createElement('div');
+                    pageDiv.className = 'page';
+                    container.parentElement.appendChild(pageDiv);
+                }
+                
+                const startIdx = page * labelsPerPage;
+                const endIdx = Math.min(startIdx + labelsPerPage, data.length);
+                
+                for (let i = startIdx; i < endIdx; i++) {
+                    const label = document.createElement('div');
+                    label.className = 'label';
+                    if (backgroundImage) {
+                        label.style.backgroundImage = `url(${backgroundImage})`;
+                    }
+                    
+                    const content = document.createElement('div');
+                    content.className = 'label-content';
+                    
+                    const sampleNumber = document.createElement('div');
+                    sampleNumber.className = 'sample-number';
+                    sampleNumber.textContent = data[i].sampleNumber;
+                    if (customFont) {
+                        sampleNumber.style.fontFamily = customFont;
+                    }
+                    
+                    const varietyName = document.createElement('div');
+                    varietyName.className = 'variety-name';
+                    varietyName.textContent = `(${data[i].varietyName})`;
+                    if (customFont) {
+                        varietyName.style.fontFamily = customFont;
+                    }
+                    
+                    content.appendChild(sampleNumber);
+                    content.appendChild(varietyName);
+                    label.appendChild(content);
+                    pageDiv.appendChild(label);
+                    
+                    // 텍스트 크기 조정
+                    setTimeout(() => {
+                        const maxWidth = 64 * 3.78; // 64mm to pixels (약 3.78 pixels per mm)
+                        const maxHeight = 44 * 3.78; // 44mm to pixels
+                        
+                        adjustTextSize(sampleNumber, maxWidth, maxHeight/2, 24, 12);
+                        adjustTextSize(varietyName, maxWidth, maxHeight/2, 24, 12);
+                    }, 10);
+                }
+            }
+            
+            alert(`총 ${data.length}개의 라벨이 생성되었습니다. (${totalPages} 페이지)`);
+        }
+        
+        // 엑셀 템플릿 다운로드
+        function downloadTemplate() {
+            const ws_data = [
+                ['시료번호', '품종명'],
+                ['RDA001', '일품벼'],
+                ['RDA002', '신동진'],
+                ['RDA003', '삼광'],
+                ['RDA004', '호품'],
+                ['RDA005', '운광']
+            ];
+            
+            const ws = XLSX.utils.aoa_to_sheet(ws_data);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "라벨데이터");
+            
+            // 열 너비 설정
+            ws['!cols'] = [
+                { wch: 15 },
+                { wch: 20 }
+            ];
+            
+            XLSX.writeFile(wb, "label_template.xlsx");
+        }
+        
+        // 샘플 데이터 로드
+        window.addEventListener('load', function() {
+            const sampleData = `RDA001,일품벼
+RDA002,신동진
+RDA003,삼광
+RDA004,호품
+RDA005,운광
+RDA006,오대
+RDA007,새청무
+RDA008,참드림`;
+            document.getElementById('text-data').value = sampleData;
+        });
+    </script>
+</body>
+</html>
