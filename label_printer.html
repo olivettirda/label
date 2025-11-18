@@ -328,6 +328,7 @@
             <div class="button-group">
                 <button onclick="generateLabels()">🔄 라벨 생성</button>
                 <button class="print-btn" onclick="window.print()">🖨️ 인쇄</button>
+                <button class="download-btn" onclick="downloadPDF()">📄 PDF 다운로드</button>
             </div>
         </div>
         
@@ -342,6 +343,8 @@
     </div>
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script>
         let backgroundImage = '';
         let customFont = null;
@@ -574,6 +577,90 @@
             
             XLSX.writeFile(wb, "label_template.xlsx");
         }
+        
+        // PDF 다운로드 함수
+        async function downloadPDF() {
+            const pages = document.querySelectorAll('.page');
+            if (pages.length === 0) {
+                alert('먼저 라벨을 생성해주세요.');
+                return;
+            }
+            
+            // jsPDF 초기화 (A4 크기, 세로 방향)
+            const { jsPDF } = window.jspdf;
+            const pdf = new jsPDF('p', 'mm', 'a4');
+            
+            // 각 페이지를 이미지로 변환하여 PDF에 추가
+            for (let i = 0; i < pages.length; i++) {
+                const page = pages[i];
+                
+                try {
+                    // html2canvas로 페이지를 캔버스로 변환
+                    const canvas = await html2canvas(page, {
+                        scale: 2, // 고해상도를 위해 스케일 증가
+                        useCORS: true,
+                        logging: false
+                    });
+                    
+                    // 캔버스를 이미지로 변환
+                    const imgData = canvas.toDataURL('image/png');
+                    
+                    // PDF에 이미지 추가
+                    if (i > 0) {
+                        pdf.addPage();
+                    }
+                    
+                    // A4 크기에 맞춰서 이미지 추가 (210mm x 297mm)
+                    pdf.addImage(imgData, 'PNG', 0, 0, 210, 297);
+                    
+                } catch (error) {
+                    console.error('PDF 생성 중 오류:', error);
+                    alert('PDF 생성 중 오류가 발생했습니다.');
+                    return;
+                }
+            }
+            
+            // PDF 다운로드
+            const today = new Date().toISOString().split('T')[0];
+            pdf.save(`label_print_${today}.pdf`);
+            alert('PDF 다운로드가 완료되었습니다.');
+        }
+        
+        // 브라우저 인쇄 대화상자 강제 호출
+        window.print = function() {
+            // 인쇄 스타일 적용 확인
+            const printStyles = `
+                @media print {
+                    body * {
+                        visibility: hidden;
+                    }
+                    .preview-container, .preview-container * {
+                        visibility: visible;
+                    }
+                    .preview-container {
+                        position: absolute;
+                        left: 0;
+                        top: 0;
+                    }
+                }
+            `;
+            
+            const styleSheet = document.createElement("style");
+            styleSheet.innerText = printStyles;
+            document.head.appendChild(styleSheet);
+            
+            setTimeout(() => {
+                window.focus();
+                if (window.document.execCommand('print', false, null)) {
+                    // IE
+                } else if (window.print) {
+                    // 다른 브라우저
+                    Window.prototype.print.call(window);
+                } else {
+                    alert('인쇄 기능이 지원되지 않는 브라우저입니다. PDF 다운로드를 사용해주세요.');
+                }
+            }, 250);
+        };
         
         // 샘플 데이터 로드
         window.addEventListener('load', function() {
