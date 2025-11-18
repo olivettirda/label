@@ -187,7 +187,6 @@
             right: 0;
             bottom: 0;
             padding: 3mm;
-            padding-bottom: 10mm; /* 하단 1cm 여백 */
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -195,32 +194,27 @@
         
         .sample-number {
             font-weight: bold;
-            line-height: 1.2;
+            line-height: 1;
             text-align: center;
             position: absolute;
-            top: 15mm; /* 시료번호 위치 고정 (라벨 높이 50mm의 약 30% 지점) */
+            top: 15mm; /* 상단 1.5cm 여백 */
             left: 3mm;
             right: 3mm;
+            white-space: nowrap;
+            overflow: hidden;
             z-index: 2;
         }
         
         .variety-name {
-            line-height: 1.2;
+            line-height: 1;
             text-align: center;
             position: absolute;
-            top: 22mm; /* 시료번호 아래 고정 위치 */
+            top: 25mm; /* 시료번호 아래 약 1cm */
             left: 3mm;
             right: 3mm;
-            bottom: 10mm; /* 하단 1cm 여백 확보 */
-            display: flex;
-            align-items: flex-start;
-            justify-content: center;
+            white-space: nowrap;
+            overflow: hidden;
             z-index: 2;
-        }
-        
-        .variety-text {
-            display: inline-block;
-            word-break: break-word;
         }
         
         /* 인쇄 스타일 */
@@ -286,6 +280,7 @@
             <p>2. 텍스트 입력 시: 각 줄에 "시료번호,품종명" 형식으로 입력 (쉼표로 구분)</p>
             <p>3. 폰트 파일(NANUMSQUAREEB.TTF)과 배경 이미지(labelback.png)를 업로드하세요.</p>
             <p>4. 미리보기를 확인하고 인쇄하세요.</p>
+            <p>※ 시료번호는 상단 1.5cm 아래, 품종명은 한 줄로 자동 조절됩니다.</p>
         </div>
         
         <div class="input-section">
@@ -432,61 +427,32 @@
             }
         });
         
-        // 품종명 텍스트 크기 조정 (하단 여백 침범 방지)
-        function adjustVarietyTextSize(element, maxWidth, maxHeight, maxSize, minSize) {
-            const textSpan = element.querySelector('.variety-text');
-            let fontSize = maxSize;
-            textSpan.style.fontSize = fontSize + 'pt';
-            
-            // 높이와 너비가 모두 제한 내에 들어올 때까지 크기 줄이기
-            while (fontSize > minSize) {
-                if (textSpan.scrollWidth <= maxWidth && textSpan.scrollHeight <= maxHeight) {
-                    break;
-                }
-                fontSize -= 0.5;
-                textSpan.style.fontSize = fontSize + 'pt';
-            }
-            
-            // 텍스트가 너무 길면 두 줄로 나누기
-            if (fontSize <= 16 && textSpan.scrollHeight > maxHeight / 2) {
-                const text = textSpan.textContent.replace(/[()]/g, '');
-                const words = text.split(/\s+/);
-                
-                // 단어가 없으면 문자 단위로 나누기
-                if (words.length <= 1) {
-                    const chars = text;
-                    const midPoint = Math.ceil(chars.length / 2);
-                    textSpan.innerHTML = `(${chars.substring(0, midPoint)}<br>${chars.substring(midPoint)})`;
-                } else {
-                    const midPoint = Math.ceil(words.length / 2);
-                    const line1 = words.slice(0, midPoint).join(' ');
-                    const line2 = words.slice(midPoint).join(' ');
-                    textSpan.innerHTML = `(${line1}<br>${line2})`;
-                }
-                
-                // 다시 크기 조정
-                while (fontSize > minSize && textSpan.scrollHeight > maxHeight) {
-                    fontSize -= 0.5;
-                    textSpan.style.fontSize = fontSize + 'pt';
-                }
-            }
-            
-            return fontSize;
-        }
-        
-        // 시료번호 텍스트 크기 조정 (위치는 고정)
-        function adjustSampleTextSize(element, maxWidth, maxSize, minSize) {
+        // 텍스트 크기 자동 조정 함수
+        function adjustTextToFitOneLine(element, maxWidth, maxSize, minSize) {
             let fontSize = maxSize;
             element.style.fontSize = fontSize + 'pt';
             
-            // 너비가 제한 내에 들어올 때까지 크기 줄이기
+            // 임시 span을 만들어서 실제 텍스트 너비 측정
+            const testSpan = document.createElement('span');
+            testSpan.style.position = 'absolute';
+            testSpan.style.visibility = 'hidden';
+            testSpan.style.whiteSpace = 'nowrap';
+            testSpan.style.fontFamily = element.style.fontFamily || 'NanumSquare';
+            testSpan.style.fontWeight = element.style.fontWeight || 'normal';
+            testSpan.textContent = element.textContent;
+            document.body.appendChild(testSpan);
+            
+            // 텍스트가 최대 너비 내에 들어올 때까지 크기 줄이기
             while (fontSize > minSize) {
-                if (element.scrollWidth <= maxWidth) {
+                testSpan.style.fontSize = fontSize + 'pt';
+                if (testSpan.offsetWidth <= maxWidth) {
                     break;
                 }
                 fontSize -= 0.5;
-                element.style.fontSize = fontSize + 'pt';
             }
+            
+            document.body.removeChild(testSpan);
+            element.style.fontSize = fontSize + 'pt';
             
             return fontSize;
         }
@@ -544,6 +510,7 @@
                     const content = document.createElement('div');
                     content.className = 'label-content';
                     
+                    // 시료번호
                     const sampleNumber = document.createElement('div');
                     sampleNumber.className = 'sample-number';
                     sampleNumber.textContent = data[i].sampleNumber;
@@ -551,33 +518,31 @@
                         sampleNumber.style.fontFamily = customFont;
                     }
                     
+                    // 품종명 (괄호 포함)
                     const varietyName = document.createElement('div');
                     varietyName.className = 'variety-name';
-                    
-                    const varietyText = document.createElement('span');
-                    varietyText.className = 'variety-text';
-                    varietyText.textContent = data[i].varietyName ? `(${data[i].varietyName})` : '';
+                    if (data[i].varietyName) {
+                        varietyName.textContent = `(${data[i].varietyName})`;
+                    }
                     if (customFont) {
-                        varietyText.style.fontFamily = customFont;
+                        varietyName.style.fontFamily = customFont;
                     }
                     
-                    varietyName.appendChild(varietyText);
                     content.appendChild(sampleNumber);
                     content.appendChild(varietyName);
                     label.appendChild(content);
                     pageDiv.appendChild(label);
                     
-                    // 텍스트 크기 조정
+                    // 텍스트 크기 조정 (DOM에 추가된 후)
                     setTimeout(() => {
                         const maxWidth = 64 * 3.78; // 64mm to pixels (약 3.78 pixels per mm)
-                        const maxHeightForVariety = 18 * 3.78; // 품종명 가용 높이 (50mm - 22mm(위) - 10mm(아래) = 18mm)
                         
-                        // 시료번호 크기 조정 (위치는 고정)
-                        adjustSampleTextSize(sampleNumber, maxWidth, 24, 12);
+                        // 시료번호 크기 조정 (한 줄에 맞추기)
+                        adjustTextToFitOneLine(sampleNumber, maxWidth, 24, 12);
                         
-                        // 품종명이 있을 때만 크기 조정
+                        // 품종명 크기 조정 (한 줄에 맞추기)
                         if (data[i].varietyName) {
-                            adjustVarietyTextSize(varietyName, maxWidth, maxHeightForVariety, 24, 12);
+                            adjustTextToFitOneLine(varietyName, maxWidth, 24, 12);
                         }
                     }, 10);
                 }
@@ -612,14 +577,96 @@
         
         // 샘플 데이터 로드
         window.addEventListener('load', function() {
-            const sampleData = `25301,Nampyeong
-25303,Younghojinmi
-25304,Samkwang
+            const sampleData = `25301,남평
+25303,영호진미
+25304,삼광
 25310,YR34567-2B-10-1
 25311,YR34567-2B-12-1
 25312,YR34567-2B-15-1
 25316,YR35216Acp1
-25317,YR35216Acp2`;
+25317,YR35216Acp2
+25318,YR35216Acp3
+25319,YR33833-2B-2-1
+25320,YR33833-2B-3-1
+25321,YR33833-2B-5-1
+255167,YR35705-2B-3-1
+255168,YR35705-2B-4-1
+255172,YR35705-2B-8-1
+35301,소비
+35302,남평
+35309,YR35064-2B-38-1
+35310,YR35064-2B-83-1
+35311,YR35064-2B-127-1
+35312,YR35064-2B-162-1
+35313,YR33521-3B-1-1
+35314,YR35421-3B-2-1
+35315,YR35421-3B-3-1
+45301,금오
+45367,조평
+45303,해담쌀
+45309,YR34613-B-2-2-1
+45310,YR34613-B-2-2-1
+45320,YR34609-2B-3-1
+45321,YR34609-2B-30-2
+45401,금오
+45402,오대
+45403,해담쌀
+45312,YR33737-3B-1-2
+45313,YR33737-3B-1-3
+45314,YR33421-3B-5-1
+45315,YR33421-3B-1-1
+45601,풍미
+45602,고시히카리
+45603,삼덕
+45605,YR34607-4-1
+45607,YR34607-4-2
+45612,YR34613-B-3-4-2
+45613,YR34613-B-3-14-1
+15301,다산
+15302,한아름4호
+15303,금강1호
+15313,YR33086-7-3-2-1-1-3
+15315,YR33086-7-3-3-1-2
+15319,YR33117-13-3-1-1-1
+15320,YR33117-14-1-2-1-1
+15324,YR33091-5-3-1-1-1
+15325,YR33093-3-2-1-1-1
+15401,다산
+15402,금강1호
+15403,IR64
+15406,아미면
+15413,YR31424-42-1-3-1-1
+15414,YR31424-47-1-3-2
+15416,YR31439-35-2-2-2-1
+15424,YR33012-46-3-1-1-1-1
+15425,YR33012-85-1-1-1-1-1
+15426,YR33012-85-1-1-2-1-1
+65301,안평
+65303,남평
+65304,YR35071-5B-1
+65305,YR35071-5B-2
+55301,남평
+55302,백옥찰
+55303,신길
+55304,미호
+55311,YR33255-2-3-4-1
+55314,YR33256-7-2-1-1
+55316,YR33256-8-1-1-1
+55318,YR32866-21-2-4-3-1
+55320,YR32866-21-2-5-1-1
+55321,YR33892-11-2-1
+55322,YR33892-11-2-4
+555060,미호
+555070,YR33192-7-1-1-2-1
+55401,백옥찰
+55402,LA1
+55404,YR32529-4B-18
+55408,YR32529-4B-27
+55412,YR32529-4B-2
+55414,YR32529-4B-5
+55415,YR32529-4B-20
+55416,YR32529-4B-75
+55417,YR32529-4B-77`;
             document.getElementById('text-data').value = sampleData;
         });
     </script>
