@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>전시용 표찰 만들기</title>
+    <title>표찰 인쇄 웹앱</title>
     <style>
         /* 웹폰트 CDN */
         @import url('https://cdn.jsdelivr.net/gh/moonspam/NanumSquare@2.0/nanumsquare.css');
@@ -181,6 +181,11 @@
             overflow: hidden;
         }
         
+        /* 7x4cm 라벨 스타일 */
+        .label.size-40mm {
+            height: 40mm;
+        }
+        
         .label-content {
             position: absolute;
             top: 0;
@@ -315,6 +320,10 @@
                 color-adjust: exact;
             }
             
+            .label.size-40mm {
+                height: 40mm;
+            }
+            
             /* 텍스트 스타일 유지 */
             .sample-number,
             .variety-name {
@@ -328,7 +337,7 @@
 </head>
 <body>
     <div class="container">
-        <h1 class="no-print">🏷️ 전시용 표찰 만들기</h1>
+        <h1 class="no-print">🏷️ 표찰 인쇄 웹앱</h1>
         
         <div class="instructions no-print">
             <h3>📌 사용 방법</h3>
@@ -367,6 +376,18 @@
                     <span class="help-text">※ 파일 선택 후 바로 라벨 생성 버튼을 누르세요.</span>
                 </div>
                 <button class="download-btn" onclick="downloadTemplate()">📥 엑셀 템플릿 다운로드</button>
+            </div>
+            
+            <div style="margin: 20px 0; padding: 15px; background: #e3f2fd; border-radius: 5px;">
+                <h3 style="margin-bottom: 10px; color: #1976d2;">라벨 크기 선택</h3>
+                <label style="margin-right: 20px;">
+                    <input type="radio" name="label-size" value="50mm" checked> 
+                    7cm × 5cm (기본)
+                </label>
+                <label>
+                    <input type="radio" name="label-size" value="40mm"> 
+                    7cm × 4cm
+                </label>
             </div>
             
             <div class="file-input-wrapper">
@@ -533,11 +554,17 @@
                 return;
             }
             
+            // 선택된 라벨 크기 가져오기
+            const selectedSize = document.querySelector('input[name="label-size"]:checked').value;
+            const isSmallSize = selectedSize === '40mm';
+            
             // 기존 컨텐츠 초기화
             const previewContainer = document.getElementById('preview');
             previewContainer.innerHTML = '';
             
-            const labelsPerPage = 10;
+            // 페이지당 라벨 수 계산 (4cm일 경우 세로로 6개, 5cm일 경우 5개)
+            const labelsPerColumn = isSmallSize ? 6 : 5;
+            const labelsPerPage = labelsPerColumn * 2; // 가로 2개
             const totalPages = Math.ceil(data.length / labelsPerPage);
             
             for (let page = 0; page < totalPages; page++) {
@@ -549,7 +576,7 @@
                 
                 for (let i = startIdx; i < endIdx; i++) {
                     const label = document.createElement('div');
-                    label.className = 'label';
+                    label.className = isSmallSize ? 'label size-40mm' : 'label';
                     
                     // 배경 이미지가 있으면 적용
                     if (backgroundImage) {
@@ -564,10 +591,20 @@
                     sampleNumber.className = 'sample-number';
                     sampleNumber.textContent = data[i].sampleNumber;
                     
+                    // 4cm일 경우 시료번호 위치 조정
+                    if (isSmallSize) {
+                        sampleNumber.style.top = '12mm'; // 1.2cm
+                    }
+                    
                     const varietyName = document.createElement('div');
                     varietyName.className = 'variety-name';
                     if (data[i].varietyName) {
                         varietyName.textContent = `(${data[i].varietyName})`;
+                    }
+                    
+                    // 4cm일 경우 품종명 위치 조정
+                    if (isSmallSize) {
+                        varietyName.style.top = '20mm'; // 2cm
                     }
                     
                     content.appendChild(sampleNumber);
@@ -588,7 +625,8 @@
                 previewContainer.appendChild(pageDiv);
             }
             
-            alert(`총 ${data.length}개의 라벨이 생성되었습니다. (${totalPages} 페이지)`);
+            const sizeText = isSmallSize ? '7cm × 4cm' : '7cm × 5cm';
+            alert(`총 ${data.length}개의 라벨이 생성되었습니다. (${totalPages} 페이지, ${sizeText})`);
         }
         
         // 엑셀 템플릿 다운로드
