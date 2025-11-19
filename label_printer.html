@@ -168,17 +168,22 @@
             align-content: flex-start;
         }
         
-        /* 라벨 스타일 - 절취선 추가 */
+        /* 라벨 스타일 - 절취선 1px로 수정 */
         .label {
             width: 70mm;
             height: 50mm;
-            border: 2px dashed #999;  /* 절취선 스타일 */
+            border: 1px dashed #999;  /* 절취선 1px로 수정 */
             position: relative;
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
             page-break-inside: avoid;
             overflow: hidden;
+        }
+        
+        /* 절취선 없는 라벨 스타일 */
+        .label.no-cut-lines {
+            border: none;
         }
         
         /* 7x4cm 라벨 스타일 */
@@ -308,16 +313,21 @@
                 page-break-after: auto;
             }
             
-            /* 라벨 절취선 유지 */
+            /* 라벨 절취선 유지 - 1px */
             .label {
                 width: 70mm;
                 height: 50mm;
-                border: 2px dashed #666;
+                border: 1px dashed #666;  /* 인쇄 시에도 1px */
                 position: relative;
                 page-break-inside: avoid;
                 -webkit-print-color-adjust: exact;
                 print-color-adjust: exact;
                 color-adjust: exact;
+            }
+            
+            /* 절취선 없는 라벨 */
+            .label.no-cut-lines {
+                border: none;
             }
             
             .label.size-40mm {
@@ -345,8 +355,9 @@
             <p>2. 텍스트 입력: "시료번호,품종명" 형식 (쉼표로 구분)</p>
             <p>3. 엑셀 업로드: 업로드 후 바로 라벨 생성 가능</p>
             <p>4. 배경 이미지를 업로드하세요. (선택사항)</p>
-            <p>5. 미리보기를 확인하고 인쇄하세요.</p>
-            <p>※ 인쇄 시 절취선을 따라 자르시면 됩니다.</p>
+            <p>5. 절취선 표시 여부를 선택하세요.</p>
+            <p>6. 미리보기를 확인하고 인쇄하세요.</p>
+            <p>※ 절취선이 표시된 경우 선을 따라 자르시면 됩니다.</p>
         </div>
         
         <div class="input-section no-print">
@@ -390,13 +401,26 @@
                 </label>
             </div>
             
+            <div style="margin: 20px 0; padding: 15px; background: #f0f8ff; border-radius: 5px;">
+                <h3 style="margin-bottom: 10px; color: #2c5282;">절취선 설정</h3>
+                <label style="cursor: pointer;">
+                    <input type="checkbox" id="show-cut-lines" checked style="margin-right: 5px;"> 
+                    절취선 표시
+                </label>
+                <span style="margin-left: 20px; color: #666; font-size: 13px;">
+                    ※ 체크 해제 시 절취선이 표시되지 않습니다.
+                </span>
+            </div>
+            
             <div class="file-input-wrapper">
                 <label for="bg-image">
                     🖼️ 배경 이미지 업로드 (선택사항)
                 </label>
                 <input type="file" id="bg-image" accept="image/*">
                 <span class="help-text">
-                    권장 크기: 551 x 394 픽셀 (200DPI 기준 7cm x 5cm)<br>
+                    권장 크기:<br>
+                    • 7cm × 5cm: 551 x 394 픽셀 (200DPI 기준)<br>
+                    • 7cm × 4cm: 551 x 315 픽셀 (200DPI 기준)<br>
                     ※ 다른 비율의 이미지도 자동으로 조절됩니다.
                 </span>
             </div>
@@ -494,6 +518,18 @@
             }
         });
         
+        // 절취선 표시 체크박스 이벤트 리스너
+        document.getElementById('show-cut-lines').addEventListener('change', function() {
+            const labels = document.querySelectorAll('.label');
+            labels.forEach(label => {
+                if (this.checked) {
+                    label.classList.remove('no-cut-lines');
+                } else {
+                    label.classList.add('no-cut-lines');
+                }
+            });
+        });
+        
         // 텍스트 크기 자동 조정 - 최소 크기 제한 없음
         function adjustTextToFitOneLine(element, maxWidth, maxSize) {
             let fontSize = maxSize;
@@ -558,6 +594,9 @@
             const selectedSize = document.querySelector('input[name="label-size"]:checked').value;
             const isSmallSize = selectedSize === '40mm';
             
+            // 절취선 표시 여부 확인
+            const showCutLines = document.getElementById('show-cut-lines').checked;
+            
             // 기존 컨텐츠 초기화
             const previewContainer = document.getElementById('preview');
             previewContainer.innerHTML = '';
@@ -577,6 +616,11 @@
                 for (let i = startIdx; i < endIdx; i++) {
                     const label = document.createElement('div');
                     label.className = isSmallSize ? 'label size-40mm' : 'label';
+                    
+                    // 절취선 표시 여부 적용
+                    if (!showCutLines) {
+                        label.classList.add('no-cut-lines');
+                    }
                     
                     // 배경 이미지가 있으면 적용
                     if (backgroundImage) {
@@ -626,7 +670,8 @@
             }
             
             const sizeText = isSmallSize ? '7cm × 4cm' : '7cm × 5cm';
-            alert(`총 ${data.length}개의 라벨이 생성되었습니다. (${totalPages} 페이지, ${sizeText})`);
+            const cutLineText = showCutLines ? '(절취선 표시)' : '(절취선 없음)';
+            alert(`총 ${data.length}개의 라벨이 생성되었습니다.\n${totalPages} 페이지, ${sizeText} ${cutLineText}`);
         }
         
         // 엑셀 템플릿 다운로드
