@@ -3,1920 +3,834 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🌾 농업 조사 통합 도구</title>
-    
-    <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/olivettirda/rda/refs/heads/main/ssallogo.png">
-    <link rel="apple-touch-icon" href="https://raw.githubusercontent.com/olivettirda/rda/refs/heads/main/ssallogo.png">
-    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/moonspam/NanumSquare@2.0/nanumsquare.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
-
+    <title>표찰 인쇄 웹앱</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 20px; }
-        .container { max-width: 1600px; margin: 0 auto; background: rgba(255, 255, 255, 0.98); border-radius: 20px; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3); overflow: hidden; }
-        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center; color: white; }
-        .header h1 { font-size: 28px; margin-bottom: 10px; font-weight: 700; }
-        .header p { font-size: 14px; opacity: 0.9; }
-        .nav-tabs { display: flex; background: #f8f9fa; border-bottom: 2px solid #e9ecef; padding: 0 20px; overflow-x: auto; }
-        .nav-tab { padding: 15px 25px; cursor: pointer; border: none; background: none; font-size: 15px; color: #495057; transition: all 0.3s; position: relative; white-space: nowrap; }
-        .nav-tab:hover { color: #667eea; }
-        .nav-tab.active { color: #667eea; font-weight: 600; }
-        .nav-tab.active::after { content: ''; position: absolute; bottom: -2px; left: 0; right: 0; height: 3px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
-        .content { padding: 30px; }
-        .tab-content { display: none; }
-        .tab-content.active { display: block; animation: fadeIn 0.3s; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        .panel { background: white; border-radius: 12px; padding: 25px; margin-bottom: 25px; border: 1px solid #e9ecef; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04); }
-        .panel-title { font-size: 18px; font-weight: 600; color: #333; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 2px solid #f0f0f0; }
-        .form-group { margin-bottom: 20px; }
-        label { display: block; margin-bottom: 8px; color: #555; font-weight: 500; font-size: 14px; }
-        .setting-label { display: inline-block; margin-bottom: 8px; color: #555; font-weight: 500; font-size: 14px; }
-        .input-divider { text-align: center; margin: 25px 0; color: #999; font-size: 14px; }
-        input[type="text"], input[type="number"], select, textarea { width: 100%; padding: 10px 15px; border: 2px solid #e9ecef; border-radius: 8px; font-size: 14px; transition: all 0.3s; }
-        input:focus, select:focus, textarea:focus { outline: none; border-color: #667eea; box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1); }
-        textarea { min-height: 120px; resize: vertical; font-family: 'Courier New', monospace; }
-        .btn { padding: 12px 24px; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.3s; display: inline-flex; align-items: center; gap: 8px; white-space: nowrap; }
-        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
-        .btn-primary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
-        .btn-primary:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3); }
-        .btn-secondary { background: #6c757d; color: white; }
-        .btn-success { background: #28a745; color: white; }
-        .btn-danger { background: #dc3545; color: white; }
-        .btn-warning { background: #ffc107; color: #212529; }
-        .btn-info { background: #17a2b8; color: white; }
-        .actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 20px; }
-        .settings-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 20px; }
-        .setting-item { display: flex; flex-direction: column; }
-        .input-row { display: flex; gap: 10px; margin-bottom: 10px; align-items: center; }
-        .input-row input[type="text"] { flex: 1; }
-        .input-row input[type="number"] { width: 80px; }
-        .input-row .btn-remove { padding: 8px 12px; background: #dc3545; color: white; border: none; border-radius: 6px; cursor: pointer; }
-        .output-section { background: #f8f9fa; border-radius: 8px; padding: 20px; min-height: 200px; margin-bottom: 20px; overflow-x: auto; }
-        .output-empty { text-align: center; color: #adb5bd; padding: 40px; font-size: 14px; }
-        .variety-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
-        .variety-item { background: white; padding: 10px; border-radius: 6px; border: 1px solid #dee2e6; font-size: 14px; text-align: center; transition: all 0.2s; }
-        .variety-item:hover { border-color: #667eea; box-shadow: 0 2px 4px rgba(102, 126, 234, 0.2); }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 13px; background: white; }
-        table th { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 12px 8px; text-align: center; font-weight: 600; position: sticky; top: 0; z-index: 10; }
-        table td { padding: 8px; border: 1px solid #dee2e6; text-align: center; }
-        table tr:nth-child(even) { background: #f8f9fa; }
-        table tr:hover { background: #e9ecef; }
-        table tr.thick-bottom-border td { border-bottom: 3px solid #495057 !important; }
-        table input { width: 100%; padding: 5px; border: 1px solid #dee2e6; border-radius: 4px; text-align: center; }
-        table input:focus { border-color: #667eea; outline: none; }
-        .chart-container { position: relative; height: 400px; margin-top: 20px; background: white; padding: 20px; border-radius: 8px; }
-        .file-upload { position: relative; display: inline-block; cursor: pointer; width: 100%; }
-        .file-upload input[type=file] { position: absolute; left: -9999px; }
-        .file-upload-label { display: block; padding: 40px; background: #f8f9fa; border: 2px dashed #dee2e6; border-radius: 8px; text-align: center; transition: all 0.3s; cursor: pointer; }
-        .file-upload-label:hover { background: #e9ecef; border-color: #667eea; }
-        .alert { padding: 15px; border-radius: 8px; margin-bottom: 20px; }
-        .alert-info { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
-        .alert-success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
-        .alert-warning { background: #fff3cd; color: #856404; border: 1px solid #ffeaa7; }
-        .conversion-section { margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px; }
-        .conversion-item { display: grid; grid-template-columns: 200px 100px 150px auto; gap: 10px; align-items: center; margin-bottom: 10px; padding: 10px; background: white; border-radius: 6px; }
-        .conversion-item input[type="checkbox"] { width: auto; margin-right: 10px; }
-        .conversion-item select { width: auto; }
-        .formula-display { font-family: 'Courier New', monospace; font-size: 12px; color: #666; padding: 5px; background: #f1f3f5; border-radius: 4px; }
-        .two-column-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-        .display-label-item { position: relative; overflow: hidden; border: 1px solid #ddd; box-shadow: 0 2px 4px rgba(0,0,0,0.1); font-family: 'NanumSquare', sans-serif; font-weight: 800; display: flex; align-items: center; justify-content: center; }
-        .display-label-small { width: 75mm; height: 40mm; padding: 0 5mm; }
-        .display-label-medium { width: 75mm; height: 50mm; padding: 0 5mm; }
-        .display-label-large { width: 150mm; height: 75mm; padding: 0 20mm; }
-        .label-name { font-size: 36pt; line-height: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: center; }
-        .label-desc { margin-top: 2mm; font-size: 18pt; line-height: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: center; }
-        .display-label-large .label-name { font-size: 72pt; }
-        .display-label-large .label-org { margin-top: 5mm; font-size: 24pt; line-height: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: center; }
-        .display-label-content { position: relative; z-index: 2; display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; }
-        .text-bg-white { background-color: rgba(255, 255, 255, 0.9); padding: 5mm; border-radius: 3mm; }
-        .text-bg-black { background-color: rgba(0, 0, 0, 0.7); padding: 5mm; border-radius: 3mm; color: white; }
-        .text-bg-blur { backdrop-filter: blur(5px); background-color: rgba(255, 255, 255, 0.3); padding: 5mm; border-radius: 3mm; }
-        .barcode-label-container { width: 210mm; min-height: 297mm; padding: 12mm 5mm; background: white; margin: 0 auto; }
-        .barcode-label-grid { display: grid; grid-template-columns: repeat(3, 64mm); grid-template-rows: repeat(8, 34mm); gap: 0 2mm; width: 100%; }
-        .barcode-label-grid-21 { display: grid; grid-template-columns: repeat(3, 64mm); grid-template-rows: repeat(7, 39mm); gap: 0 2mm; width: 100%; }
-        .qr-label-item { width: 64mm; height: 34mm; border: 1px solid #ccc; padding: 2mm; display: flex; align-items: center; overflow: hidden; box-sizing: border-box; font-family: 'NanumSquare', sans-serif; }
-        .qr-label-item-39 { height: 39mm; }
-        .qr-label-left { width: 20mm; height: 20mm; display: flex; align-items: center; justify-content: center; margin-right: 2mm; flex-shrink: 0; }
-        .qr-code-container { width: 20mm; height: 20mm; display: flex; align-items: center; justify-content: center; }
-        .qr-code-container canvas, .qr-code-container img { max-width: 100%; max-height: 100%; width: auto !important; height: auto !important; }
-        .qr-label-right { flex: 1; display: flex; flex-direction: column; justify-content: center; padding-right: 5mm; padding-left: 2mm; min-width: 0; }
-        .qr-test-number { font-size: 18pt; font-weight: bold; line-height: 1; margin-bottom: 1mm; white-space: nowrap; text-overflow: ellipsis; overflow: hidden; }
-        .qr-variety-name { font-size: 9pt; line-height: 1; margin-bottom: 1mm; white-space: nowrap; text-overflow: ellipsis; overflow: hidden; }
-        .qr-sample-number { font-size: 8pt; font-family: 'Courier New', monospace; color: #666; line-height: 1; white-space: nowrap; }
-        @media (max-width: 768px) { .two-column-layout { grid-template-columns: 1fr; } .conversion-item { grid-template-columns: 1fr; } }
-        @media print { body { background: white; padding: 0; } .container { box-shadow: none; } .nav-tabs, .header, .btn, .actions { display: none !important; } }
+        /* 웹폰트 CDN */
+        @import url('https://cdn.jsdelivr.net/gh/moonspam/NanumSquare@2.0/nanumsquare.css');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'NanumSquareEB', 'NanumSquare', sans-serif;
+            background: #f0f0f0;
+            padding: 20px;
+        }
+        
+        .no-print {
+            /* 인쇄하지 않을 요소들을 위한 클래스 */
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+        }
+        
+        .input-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f9f9f9;
+            border-radius: 5px;
+        }
+        
+        .input-method {
+            margin-bottom: 20px;
+        }
+        
+        .input-method label {
+            display: inline-block;
+            margin-right: 20px;
+            cursor: pointer;
+        }
+        
+        .input-method input[type="radio"] {
+            margin-right: 5px;
+        }
+        
+        .input-panel {
+            display: none;
+            margin-top: 20px;
+        }
+        
+        .input-panel.active {
+            display: block;
+        }
+        
+        textarea {
+            width: 100%;
+            height: 200px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 14px;
+        }
+        
+        .file-input-wrapper {
+            margin: 20px 0;
+        }
+        
+        .file-input-wrapper label {
+            display: inline-block;
+            padding: 10px 20px;
+            background: #007bff;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        
+        .file-input-wrapper input[type="file"] {
+            display: none;
+        }
+        
+        .file-input-wrapper .help-text {
+            display: block;
+            margin-top: 5px;
+            font-size: 13px;
+            color: #666;
+        }
+        
+        .button-group {
+            margin: 20px 0;
+            text-align: center;
+        }
+        
+        button {
+            padding: 12px 30px;
+            margin: 0 10px;
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        button:hover {
+            background: #218838;
+        }
+        
+        .download-btn {
+            background: #17a2b8;
+        }
+        
+        .download-btn:hover {
+            background: #138496;
+        }
+        
+        .print-btn {
+            background: #dc3545;
+        }
+        
+        .print-btn:hover {
+            background: #c82333;
+        }
+        
+        /* 인쇄 영역 */
+        .preview-section {
+            margin-top: 30px;
+            border-top: 2px solid #ddd;
+            padding-top: 20px;
+        }
+        
+        .preview-container {
+            background: white;
+            padding: 20px;
+            border: 1px solid #ddd;
+            overflow: auto;
+            max-height: 600px;
+        }
+        
+        /* A4 페이지 설정 */
+        .page {
+            width: 210mm;
+            min-height: 297mm;
+            padding: 10mm;
+            margin: 0 auto 20px;
+            background: white;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            display: flex;
+            flex-wrap: wrap;
+            align-content: flex-start;
+        }
+        
+        /* 라벨 스타일 - 절취선 1px로 수정 */
+        .label {
+            width: 70mm;
+            height: 50mm;
+            border: 1px dashed #999;  /* 절취선 1px로 수정 */
+            position: relative;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            page-break-inside: avoid;
+            overflow: hidden;
+        }
+        
+        /* 절취선 없는 라벨 스타일 */
+        .label.no-cut-lines {
+            border: none;
+        }
+        
+        /* 7x4cm 라벨 스타일 */
+        .label.size-40mm {
+            height: 40mm;
+        }
+        
+        /* 15x7.5cm 대형 라벨 스타일 */
+        .label.size-75mm {
+            width: 150mm;
+            height: 75mm;
+        }
+        
+        .label-content {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            padding: 5mm;  /* 여백을 3mm에서 5mm로 증가 */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        /* 대형 라벨용 컨텐츠 스타일 */
+        .label.size-75mm .label-content {
+            padding: 20mm;  /* 양옆 2cm 여백 */
+            justify-content: center;
+        }
+        
+        .sample-number {
+            font-weight: bold;
+            line-height: 1;
+            text-align: center;
+            position: absolute;
+            top: 15mm;
+            left: 5mm;  /* 여백 증가 */
+            right: 5mm;  /* 여백 증가 */
+            white-space: nowrap;
+            overflow: visible;
+            z-index: 2;
+        }
+        
+        /* 대형 라벨의 이름 표시 스타일 */
+        .label.size-75mm .sample-number {
+            position: relative;
+            top: auto;
+            left: auto;
+            right: auto;
+            font-size: 60pt;  /* 기본 최대 크기 60pt */
+        }
+        
+        .variety-name {
+            line-height: 1;
+            text-align: center;
+            position: absolute;
+            top: 25mm;
+            left: 5mm;  /* 여백 증가 */
+            right: 5mm;  /* 여백 증가 */
+            white-space: nowrap;
+            overflow: visible;
+            z-index: 2;
+        }
+        
+        /* 대형 라벨에서는 품종명 숨김 */
+        .label.size-75mm .variety-name {
+            display: none;
+        }
+        
+        .instructions {
+            background: #fff3cd;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        
+        .instructions h3 {
+            margin-bottom: 10px;
+            color: #856404;
+        }
+        
+        .instructions p {
+            margin: 5px 0;
+            color: #856404;
+        }
+        
+        /* 인쇄 스타일 */
+        @media print {
+            @page {
+                size: A4;
+                margin: 0;
+            }
+            
+            body {
+                margin: 0;
+                padding: 0;
+                background: white;
+            }
+            
+            /* 인쇄하지 않을 요소들 */
+            .no-print,
+            h1,
+            .instructions,
+            .input-section,
+            .preview-section h2,
+            .button-group {
+                display: none !important;
+            }
+            
+            /* 컨테이너 스타일 초기화 */
+            .container {
+                max-width: none;
+                margin: 0;
+                padding: 0;
+                border: none;
+                border-radius: 0;
+                box-shadow: none;
+                background: white;
+            }
+            
+            .preview-section {
+                margin: 0;
+                padding: 0;
+                border: none;
+            }
+            
+            .preview-container {
+                margin: 0;
+                padding: 0;
+                border: none;
+                max-height: none;
+                overflow: visible;
+                background: white;
+            }
+            
+            /* 페이지 스타일 */
+            .page {
+                width: 210mm;
+                height: 297mm;
+                margin: 0;
+                padding: 10mm;
+                box-shadow: none;
+                page-break-after: always;
+                page-break-inside: avoid;
+                display: flex;
+                flex-wrap: wrap;
+                align-content: flex-start;
+            }
+            
+            /* 마지막 페이지는 page-break 없음 */
+            .page:last-child {
+                page-break-after: auto;
+            }
+            
+            /* 라벨 절취선 유지 - 1px */
+            .label {
+                width: 70mm;
+                height: 50mm;
+                border: 1px dashed #666;  /* 인쇄 시에도 1px */
+                position: relative;
+                page-break-inside: avoid;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+                color-adjust: exact;
+            }
+            
+            /* 절취선 없는 라벨 */
+            .label.no-cut-lines {
+                border: none;
+            }
+            
+            .label.size-40mm {
+                height: 40mm;
+            }
+            
+            .label.size-75mm {
+                width: 150mm;
+                height: 75mm;
+            }
+            
+            /* 텍스트 스타일 유지 */
+            .sample-number,
+            .variety-name {
+                color: black;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+                color-adjust: exact;
+            }
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="header">
-            <h1>🌾 농업 조사 통합 도구</h1>
-            <p>품종 목록 생성, 생육조사, 데이터 분석을 한 곳에서 관리하세요</p>
+        <h1 class="no-print">🏷️ 표찰 인쇄 웹앱</h1>
+        
+        <div class="instructions no-print">
+            <h3>📌 사용 방법</h3>
+            <p>1. 엑셀 템플릿을 다운로드하거나 직접 텍스트로 입력하세요.</p>
+            <p>2. 텍스트 입력: "시료번호,품종명" 형식 (쉼표로 구분)</p>
+            <p>3. 엑셀 업로드: 업로드 후 바로 라벨 생성 가능</p>
+            <p>4. 배경 이미지를 업로드하세요. (선택사항)</p>
+            <p>5. 절취선 표시 여부를 선택하세요.</p>
+            <p>6. 미리보기를 확인하고 인쇄하세요.</p>
+            <p>※ 절취선이 표시된 경우 선을 따라 자르시면 됩니다.</p>
+            <p>※ 15cm × 7.5cm 대형 라벨은 이름만 표시됩니다.</p>
         </div>
-
-        <div class="nav-tabs">
-            <button class="nav-tab active" onclick="switchTab(event, 'list')">📋 품종목록 생성</button>
-            <button class="nav-tab" onclick="switchTab(event, 'survey')">📝 생육조사 양식</button>
-            <button class="nav-tab" onclick="switchTab(event, 'analysis')">📊 데이터 분석</button>
-            <button class="nav-tab" onclick="switchTab(event, 'label')">🏷️ 라벨 출력</button>
+        
+        <div class="input-section no-print">
+            <h2>데이터 입력</h2>
+            
+            <div class="input-method">
+                <label>
+                    <input type="radio" name="input-type" value="text" checked>
+                    텍스트 직접 입력
+                </label>
+                <label>
+                    <input type="radio" name="input-type" value="excel">
+                    엑셀 파일 업로드
+                </label>
+            </div>
+            
+            <div id="text-input" class="input-panel active">
+                <textarea id="text-data" placeholder="시료번호,품종명&#10;RDA001,일품벼&#10;RDA002,신동진&#10;RDA003,삼광&#10;..."></textarea>
+            </div>
+            
+            <div id="excel-input" class="input-panel">
+                <div class="file-input-wrapper">
+                    <label for="excel-file">
+                        📁 엑셀 파일 선택 (.xlsx, .csv)
+                    </label>
+                    <input type="file" id="excel-file" accept=".xlsx,.xls,.csv">
+                    <span class="help-text">※ 파일 선택 후 바로 라벨 생성 버튼을 누르세요.</span>
+                </div>
+                <button class="download-btn" onclick="downloadTemplate()">📥 엑셀 템플릿 다운로드</button>
+            </div>
+            
+            <div style="margin: 20px 0; padding: 15px; background: #e3f2fd; border-radius: 5px;">
+                <h3 style="margin-bottom: 10px; color: #1976d2;">라벨 크기 선택</h3>
+                <label style="margin-right: 20px;">
+                    <input type="radio" name="label-size" value="50mm" checked> 
+                    7cm × 5cm (기본)
+                </label>
+                <label style="margin-right: 20px;">
+                    <input type="radio" name="label-size" value="40mm"> 
+                    7cm × 4cm
+                </label>
+                <label>
+                    <input type="radio" name="label-size" value="75mm"> 
+                    15cm × 7.5cm (대형, 이름만)
+                </label>
+            </div>
+            
+            <div style="margin: 20px 0; padding: 15px; background: #f0f8ff; border-radius: 5px;">
+                <h3 style="margin-bottom: 10px; color: #2c5282;">절취선 설정</h3>
+                <label style="cursor: pointer;">
+                    <input type="checkbox" id="show-cut-lines" checked style="margin-right: 5px;"> 
+                    절취선 표시
+                </label>
+                <span style="margin-left: 20px; color: #666; font-size: 13px;">
+                    ※ 체크 해제 시 절취선이 표시되지 않습니다.
+                </span>
+            </div>
+            
+            <div class="file-input-wrapper">
+                <label for="bg-image">
+                    🖼️ 배경 이미지 업로드 (선택사항)
+                </label>
+                <input type="file" id="bg-image" accept="image/*">
+                <span class="help-text">
+                    권장 크기:<br>
+                    • 7cm × 5cm: 551 x 394 픽셀 (200DPI 기준)<br>
+                    • 7cm × 4cm: 551 x 315 픽셀 (200DPI 기준)<br>
+                    • 15cm × 7.5cm: 1181 x 591 픽셀 (200DPI 기준)<br>
+                    ※ 다른 비율의 이미지도 자동으로 조절됩니다.
+                </span>
+            </div>
+            
+            <div class="button-group">
+                <button onclick="generateLabels()">🔄 라벨 생성</button>
+                <button class="print-btn" onclick="window.print()">🖨️ 인쇄 (Ctrl+P)</button>
+                <button class="download-btn" onclick="downloadPDF()">📄 PDF 다운로드</button>
+            </div>
         </div>
-
-        <div class="content">
-            <!-- 품종목록 생성 탭 -->
-            <div id="listTab" class="tab-content active">
-                <div class="two-column-layout">
-                    <div class="panel">
-                        <div class="panel-title">📝 품종 입력</div>
-                        
-                        <div class="form-group">
-                            <label>직접 입력</label>
-                            <div id="varietyInputs"></div>
-                            <button class="btn btn-info" onclick="addInputRow()">+ 품종 추가</button>
-                        </div>
-
-                        <div class="input-divider">또는</div>
-
-                        <div class="form-group">
-                            <label>텍스트 일괄 입력</label>
-                            <textarea id="bulkInput" placeholder="한아름&#10;새일미&#10;삼광"></textarea>
-                            <div style="margin-top: 10px;">
-                                <label class="setting-label">기본 반복수</label>
-                                <input type="number" id="defaultRepeatCount" value="3" min="1" max="20" style="width: 100px;">
-                            </div>
-                        </div>
-
-                        <div class="input-divider">또는</div>
-
-                        <div class="form-group">
-                            <label>엑셀 파일 업로드</label>
-                            <div class="file-upload">
-                                <input type="file" id="excelFile" accept=".xlsx,.xls" onchange="handleExcelUpload(event)">
-                                <label for="excelFile" class="file-upload-label" id="excelLabel">
-                                    📂 클릭하여 파일 선택<br>
-                                    <small>또는 파일을 여기에 드래그</small>
-                                </label>
-                            </div>
-                        </div>
-
-                        <div class="actions">
-                            <button class="btn btn-secondary" onclick="downloadListTemplate()">📥 템플릿 다운로드</button>
-                            <button class="btn btn-primary" onclick="generateList()" style="padding: 12px 30px; font-size: 16px;">
-                                📋 품종 목록 생성
-                            </button>
-                            <button class="btn btn-warning" onclick="clearInputs()">🔄 초기화</button>
-                        </div>
-                    </div>
-
-                    <div class="panel">
-                        <div class="panel-title">📋 생성된 목록</div>
-                        
-                        <div class="output-section" id="listOutput">
-                            <div class="output-empty">품종을 입력하거나 엑셀 파일을 업로드한 후<br>'목록 생성' 버튼을 클릭하세요</div>
-                        </div>
-
-                        <div class="actions">
-                            <button class="btn btn-secondary" onclick="copyListToClipboard()">📋 복사하기</button>
-                            <button class="btn btn-secondary" onclick="downloadListExcel()">📊 엑셀 다운로드</button>
-                            <button class="btn btn-secondary" onclick="downloadListCSV()">💾 CSV 다운로드</button>
-                            <button class="btn btn-danger" onclick="clearListOutput()">🗑️ 초기화</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 생육조사 양식 탭 -->
-            <div id="surveyTab" class="tab-content">
-                <div class="panel">
-                    <div class="panel-title">⚙️ 기본 설정</div>
-                    
-                    <div class="settings-grid">
-                        <div class="setting-item">
-                            <label class="setting-label">반복 수</label>
-                            <input type="number" id="repeatCount" placeholder="반복 수 입력" min="1" max="20">
-                        </div>
-                        
-                        <div class="setting-item">
-                            <label class="setting-label">조사 항목 세트</label>
-                            <select id="surveyType" onchange="updateSurveyItems()">
-                                <option value="basic">기본 (간장, 수장, 수수)</option>
-                                <option value="heading">기본 + 출수기</option>
-                                <option value="yield">수량구성요소</option>
-                                <option value="quality">품질 특성</option>
-                                <option value="full">전체 (모든 항목)</option>
-                                <option value="custom">사용자 정의</option>
-                            </select>
-                        </div>
-
-                        <div class="setting-item">
-                            <label class="setting-label">데이터 입력 방식</label>
-                            <select id="inputMethod">
-                                <option value="manual">수동 입력</option>
-                                <option value="excel">엑셀 업로드</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div id="customSurveyItems" style="display:none; margin-top: 20px;">
-                        <label class="setting-label">조사 항목 입력 (한 줄에 하나씩)</label>
-                        <textarea id="customItems" placeholder="예:&#10;간장(cm)&#10;수장(cm)&#10;수수&#10;출수기(월.일)&#10;천립중(g)"></textarea>
-                    </div>
-
-                    <!-- 단위 변환 설정 -->
-                    <div id="conversionSection" class="conversion-section" style="display:none;">
-                        <div class="panel-title" style="font-size: 15px; margin-bottom: 15px;">📏 단위 변환 설정</div>
-                        <div id="conversionItems"></div>
-                    </div>
-                </div>
-
-                <!-- 품종 입력 -->
-                <div class="panel">
-                    <div class="panel-title">🌾 조사 품종</div>
-                    
-                    <div class="form-group">
-                        <label>품종 목록 (한 줄에 하나씩)</label>
-                        <textarea id="surveyVarieties" placeholder="한아름&#10;새일미&#10;삼광"></textarea>
-                        <div style="margin-top: 10px;">
-                            <button class="btn btn-info" onclick="loadFromListTab()">📋 품종목록에서 가져오기</button>
-                        </div>
-                    </div>
-
-                    <div class="input-divider">또는</div>
-
-                    <div class="form-group">
-                        <label>엑셀 템플릿 업로드</label>
-                        <div class="file-upload">
-                            <input type="file" id="surveyExcelFile" accept=".xlsx,.xls" onchange="handleSurveyExcelUpload(event)">
-                            <label for="surveyExcelFile" class="file-upload-label">
-                                📂 조사 데이터 엑셀 업로드<br>
-                                <small>템플릿 양식의 엑셀 파일</small>
-                            </label>
-                        </div>
-                    </div>
-
-                    <div class="actions">
-                        <button class="btn btn-secondary" onclick="downloadSurveyTemplate()">📥 조사양식 템플릿</button>
-                        <button class="btn btn-primary" onclick="generateTable()">📊 조사표 생성</button>
-                        <button class="btn btn-warning" onclick="clearSurveyForm()">🔄 초기화</button>
-                    </div>
-                </div>
-
-                <!-- 생성된 조사표 -->
-                <div class="panel">
-                    <div class="panel-title">📊 조사 데이터 입력</div>
-                    
-                    <div class="output-section" id="surveyTableOutput">
-                        <div class="output-empty">조사 설정을 완료하고 '조사표 생성' 버튼을 클릭하세요</div>
-                    </div>
-
-                    <div class="actions" id="surveyActions" style="display:none;">
-                        <button class="btn btn-success" onclick="calculateAllStats()">📊 통계 계산</button>
-                        <button class="btn btn-secondary" onclick="saveSurveyData()">💾 데이터 저장</button>
-                        <button class="btn btn-secondary" onclick="downloadSurveyExcel()">📥 엑셀 다운로드</button>
-                        <button class="btn btn-secondary" onclick="downloadWithFormulas()">📥 수식포함 다운로드</button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 데이터 분석 탭 -->
-            <div id="analysisTab" class="tab-content">
-                <div class="panel">
-                    <div class="panel-title">📁 데이터 업로드</div>
-                    
-                    <div class="form-group">
-                        <label>생육조사 데이터 파일 업로드</label>
-                        <div class="alert alert-info">
-                            <strong>📌 업로드 안내:</strong><br>
-                            • 생육조사 탭에서 생성한 양식에 데이터 입력<br>
-                            • 첫 번째 열: 품종명 (반복별로 각 행에 입력)<br>
-                            • 나머지 열: 조사항목별 측정값<br>
-                            • 같은 품종의 반복간 통계 분석 수행
-                        </div>
-                        <div class="file-upload">
-                            <input type="file" id="dataFile" accept=".xlsx,.xls" onchange="handleDataUpload(event)">
-                            <label for="dataFile" class="file-upload-label" id="dataFileLabel">
-                                📂 클릭하여 데이터 파일 선택<br>
-                                <small>생육조사 데이터가 입력된 엑셀 파일</small>
-                            </label>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="panel">
-                    <div class="panel-title">📊 분석 설정</div>
-                    
-                    <div class="settings-grid">
-                        <div class="setting-item">
-                            <label class="setting-label">분석할 항목 선택</label>
-                            <select id="analysisItem" onchange="updateAnalysis()">
-                                <option value="">항목을 선택하세요</option>
-                            </select>
-                        </div>
-                        
-                        <div class="setting-item">
-                            <label class="setting-label">유의수준</label>
-                            <select id="significanceLevel">
-                                <option value="0.05" selected>0.05 (95%)</option>
-                                <option value="0.01">0.01 (99%)</option>
-                                <option value="0.001">0.001 (99.9%)</option>
-                            </select>
-                        </div>
-                    </div>
-                    
-                    <div class="actions">
-                        <button class="btn btn-primary" onclick="runStatisticalAnalysis()">📊 통계 분석 실행</button>
-                        <button class="btn btn-secondary" onclick="exportAnalysisReport()">📄 분석 보고서 내보내기</button>
-                    </div>
-                </div>
-
-                <div class="panel">
-                    <div class="panel-title">📈 기초 통계량</div>
-                    
-                    <div id="basicStatsTable" class="output-section">
-                        <div class="output-empty">분석할 항목을 선택하고 '통계 분석 실행' 버튼을 클릭하세요</div>
-                    </div>
-                </div>
-
-                <div class="panel">
-                    <div class="panel-title">📊 분산분석 (ANOVA)</div>
-                    
-                    <div id="anovaResults" class="output-section">
-                        <div class="output-empty">ANOVA 결과가 여기에 표시됩니다</div>
-                    </div>
-                </div>
-
-                <div class="panel">
-                    <div class="panel-title">📊 Duncan's Multiple Range Test (DMRT)</div>
-                    
-                    <div id="dmrtResults" class="output-section">
-                        <div class="output-empty">DMRT 결과가 여기에 표시됩니다</div>
-                    </div>
-                </div>
-
-                <div class="panel">
-                    <div class="panel-title">📈 데이터 시각화</div>
-                    
-                    <div class="settings-grid">
-                        <div class="setting-item">
-                            <label class="setting-label">차트 유형</label>
-                            <select id="chartType" onchange="updateChart()">
-                                <option value="bar">막대 그래프</option>
-                                <option value="line">선 그래프</option>
-                                <option value="box">박스플롯</option>
-                                <option value="scatter">산점도</option>
-                            </select>
-                        </div>
-                        
-                        <div class="setting-item">
-                            <label class="setting-label">오차 막대</label>
-                            <select id="errorBar" onchange="updateChart()">
-                                <option value="none">없음</option>
-                                <option value="se">표준오차 (SE)</option>
-                                <option value="sd">표준편차 (SD)</option>
-                                <option value="ci95">95% 신뢰구간</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="chart-container">
-                        <canvas id="analysisChart"></canvas>
-                    </div>
-
-                    <div class="actions">
-                        <button class="btn btn-secondary" onclick="downloadChart()">📥 차트 다운로드</button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 라벨 출력 탭 -->
-            <div id="labelTab" class="tab-content">
-                <div class="panel">
-                    <div class="panel-title">🏷️ 라벨 유형 선택</div>
-                    
-                    <div class="settings-grid">
-                        <div class="setting-item">
-                            <label class="setting-label">라벨 용도</label>
-                            <select id="labelType" onchange="updateLabelType()">
-                                <option value="display">전시용 라벨 (배경이미지)</option>
-                                <option value="barcode">바코드/QR 라벨</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 전시용 라벨 설정 -->
-                <div id="displayLabelSettings" class="panel">
-                    <div class="panel-title">🖼️ 전시용 라벨 설정</div>
-                    
-                    <div class="settings-grid">
-                        <div class="setting-item">
-                            <label class="setting-label">라벨 크기</label>
-                            <select id="displayLabelSize" onchange="updateDisplaySizeInfo()">
-                                <option value="small">소형 (75mm × 40mm)</option>
-                                <option value="medium" selected>중형 (75mm × 50mm)</option>
-                                <option value="large">명찰용 (150mm × 75mm)</option>
-                            </select>
-                        </div>
-
-                        <div class="setting-item">
-                            <label class="setting-label">라벨 레이아웃</label>
-                            <select id="displayLabelLayout" onchange="updateLabelPreview()">
-                                <option value="1x1">단일 라벨</option>
-                                <option value="2x4">2 x 4 (A4)</option>
-                                <option value="2x5">2 x 5 (A4)</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div id="sizeRecommendation" class="alert alert-info" style="margin-top: 15px;">
-                        <strong>📐 라벨 규격</strong><br>
-                        <span id="recommendedSize">중형: 75mm × 50mm</span>
-                    </div>
-
-                    <div class="form-group">
-                        <label>배경 이미지 업로드</label>
-                        <div class="file-upload">
-                            <input type="file" id="bgImageFile" accept="image/*" onchange="handleBgImageUpload(event)">
-                            <label for="bgImageFile" class="file-upload-label">
-                                🖼️ 클릭하여 이미지 선택<br>
-                                <small>JPG, PNG 형식 지원</small>
-                            </label>
-                        </div>
-                    </div>
-
-                    <div class="settings-grid">
-                        <div class="setting-item">
-                            <label class="setting-label">이미지 조정</label>
-                            <select id="imageFit" onchange="updateLabelPreview()">
-                                <option value="cover">채우기 (비율 유지)</option>
-                                <option value="contain">맞추기 (전체 보이기)</option>
-                                <option value="stretch">늘리기 (비율 무시)</option>
-                                <option value="center">중앙 정렬</option>
-                            </select>
-                        </div>
-
-                        <div class="setting-item">
-                            <label class="setting-label">텍스트 색상</label>
-                            <input type="color" id="textColor" value="#000000" onchange="updateLabelPreview()">
-                        </div>
-
-                        <div class="setting-item">
-                            <label class="setting-label">텍스트 배경</label>
-                            <select id="textBg" onchange="updateLabelPreview()">
-                                <option value="none">없음</option>
-                                <option value="white">흰색 반투명</option>
-                                <option value="black">검정 반투명</option>
-                                <option value="blur">블러 효과</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="settings-grid">
-                        <div class="setting-item">
-                            <label class="setting-label">이름 (필수)</label>
-                            <textarea id="displayNames" rows="5" placeholder="한아름
-새일미
-삼광"></textarea>
-                        </div>
-
-                        <div class="setting-item">
-                            <label class="setting-label">부가설명 (소형/중형) 또는 소속 (명찰용)</label>
-                            <input type="text" id="displayInfo1" placeholder="예: 2024년 시험 또는 농촌진흥청">
-                        </div>
-                    </div>
-
-                    <div class="actions">
-                        <button class="btn btn-primary" onclick="generateDisplayLabels()">🏷️ 전시용 라벨 생성</button>
-                        <button class="btn btn-warning" onclick="resetBgImage()">🔄 이미지 초기화</button>
-                    </div>
-                </div>
-
-                <!-- 바코드/QR 라벨 설정 -->
-                <div id="barcodeLabelSettings" class="panel" style="display:none;">
-                    <div class="panel-title">📊 QR코드 라벨 설정</div>
-                    
-                    <div class="settings-grid">
-                        <div class="setting-item">
-                            <label class="setting-label">라벨 규격</label>
-                            <select id="labelSpec" onchange="updateLabelSpec()">
-                                <option value="3106">폼텍 3106 (64mm × 34mm, 24칸)</option>
-                                <option value="3105">폼텍 3105 (64mm × 39mm, 21칸)</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div id="labelSpecInfo" class="alert alert-info">
-                        <strong>📋 폼텍 3106 라벨 규격</strong><br>
-                        • 라벨 크기: 64mm × 34mm<br>
-                        • 배열: 3열 × 8행 (A4 한 장에 24개)<br>
-                        • 여백: 위/아래 12mm, 좌/우 5mm, 열 간격 2mm
-                    </div>
-
-                    <div class="panel" style="margin-top: 20px;">
-                        <div class="panel-title" style="font-size: 16px;">🔢 시료번호 자동 생성</div>
-                        
-                        <div class="settings-grid">
-                            <div class="setting-item">
-                                <label class="setting-label">연도 (4자리)</label>
-                                <input type="number" id="sampleYear" placeholder="예: 2024" min="2000" max="2099" 
-                                       value="2024" onchange="updateSampleNumberFormat()">
-                            </div>
-
-                            <div class="setting-item">
-                                <label class="setting-label">실험실</label>
-                                <select id="labCode" onchange="updateSampleNumberFormat()">
-                                    <option value="1">가공실 (1)</option>
-                                    <option value="2">이모작실 (2)</option>
-                                    <option value="3">경지실 (3)</option>
-                                </select>
-                            </div>
-
-                            <div class="setting-item">
-                                <label class="setting-label">시험번호</label>
-                                <input type="text" id="testNumberInput" placeholder="예: 001 또는 000001" 
-                                       maxlength="6" onchange="updateSampleNumberFormat()">
-                            </div>
-                        </div>
-
-                        <div id="sampleNumberPreview" class="alert alert-success" style="margin-top: 15px;">
-                            <strong>시료번호 생성 규칙:</strong><br>
-                            <span id="sampleFormatExample">2024 0 1 000001</span><br>
-                            <small>연도(4) + 0(1) + 실험실(1) + 시험번호(6, 앞에 0 추가) = 총 12자리</small>
-                        </div>
-                    </div>
-
-                    <div class="panel" style="margin-top: 20px;">
-                        <div class="panel-title" style="font-size: 16px;">📥 라벨 데이터 입력</div>
-                        
-                        <div class="form-group">
-                            <label>엑셀 템플릿 업로드</label>
-                            <div class="file-upload">
-                                <input type="file" id="qrLabelFile" accept=".xlsx,.xls" onchange="handleQRLabelUpload(event)">
-                                <label for="qrLabelFile" class="file-upload-label">
-                                    📂 QR라벨 데이터 엑셀 업로드<br>
-                                    <small>품종 및 계통 목록이 포함된 파일</small>
-                                </label>
-                            </div>
-                        </div>
-
-                        <div class="input-divider">또는</div>
-
-                        <div class="form-group">
-                            <label>품종 직접 입력</label>
-                            <button class="btn btn-info" onclick="showQRDataInput()">📝 품종 직접 입력</button>
-                        </div>
-
-                        <div id="qrDataInput" style="display:none; margin-top: 20px;">
-                            <div class="alert alert-warning">
-                                <strong>입력 형식:</strong> 품종명을 한 줄에 하나씩 입력<br>
-                                <small>시료번호는 위에서 설정한 형식으로 자동 생성됩니다</small>
-                            </div>
-                            <textarea id="qrDataText" rows="10" placeholder="한아름
-새일미
-삼광
-참동진
-신동진"></textarea>
-                        </div>
-                    </div>
-
-                    <div class="actions">
-                        <button class="btn btn-secondary" onclick="downloadQRTemplate()">📥 QR라벨 템플릿 다운로드</button>
-                        <button class="btn btn-primary" onclick="generateQRLabels()">🏷️ QR라벨 생성</button>
-                        <button class="btn btn-warning" onclick="clearQRData()">🔄 초기화</button>
-                    </div>
-                </div>
-
-                <div class="panel">
-                    <div class="panel-title">👁️ 라벨 미리보기</div>
-                    
-                    <div id="labelPreview" class="output-section">
-                        <div class="output-empty">라벨 설정을 완료하고 '라벨 생성' 버튼을 클릭하세요</div>
-                    </div>
-
-                    <div class="actions" id="labelActions" style="display:none;">
-                        <button class="btn btn-success" onclick="printLabels()">🖨️ 인쇄</button>
-                        <button class="btn btn-secondary" onclick="downloadLabelsPDF()">📄 PDF 다운로드</button>
-                        <button class="btn btn-secondary" onclick="downloadLabelsExcel()">📊 엑셀 다운로드</button>
-                    </div>
-                </div>
+        
+        <div class="preview-section">
+            <h2 class="no-print">미리보기</h2>
+            <div class="preview-container" id="preview">
+                <!-- 라벨이 여기에 생성됩니다 -->
             </div>
         </div>
     </div>
-
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script>
-        // 전역 변수
-        let varieties = [];
-        let tableData = [];
-        let conversionSettings = {};
-        let analysisData = {};
-        let currentChart = null;
-        let surveyItems = [];
-        let excelData = null;
-        let bgImageData = null;
-        let qrLabelData = [];
-        let surveyData = {};
-
-        // 초기화
-        document.addEventListener('DOMContentLoaded', () => {
-            for (let i = 0; i < 3; i++) addInputRow();
-            updateSurveyItems();
-        });
-
-        // 탭 전환
-        function switchTab(event, tab) {
-            document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-            event.target.classList.add('active');
-            document.getElementById(tab + 'Tab').classList.add('active');
-        }
-
-        // ========== 품종 목록 생성 기능 ==========
+        let backgroundImage = '';
+        let excelData = []; // 엑셀 데이터 저장용 전역 변수
         
-        function addInputRow() {
-            const container = document.getElementById('varietyInputs');
-            const row = document.createElement('div');
-            row.className = 'input-row';
-            row.innerHTML = `
-                <input type="text" placeholder="품종명 입력">
-                <input type="number" placeholder="반복수" min="1" max="20">
-                <button class="btn-remove" onclick="removeInputRow(this)">삭제</button>
-            `;
-            container.appendChild(row);
-        }
-
-        function removeInputRow(btn) {
-            btn.parentElement.remove();
-        }
-
-        function generateList() {
-            varieties = [];
-            const rows = document.querySelectorAll('#varietyInputs .input-row');
-            rows.forEach(row => {
-                const name = row.querySelector('input[type="text"]').value.trim();
-                const repeat = parseInt(row.querySelector('input[type="number"]').value) || 0;
-                if (name && repeat > 0) {
-                    for (let i = 1; i <= repeat; i++) {
-                        varieties.push({ name, repeat: i, full: `${name}-${i}` });
-                    }
-                }
-            });
-            const bulkInput = document.getElementById('bulkInput').value.trim();
-            if (bulkInput) {
-                const defaultRepeat = parseInt(document.getElementById('defaultRepeatCount').value) || 3;
-                bulkInput.split('\n').map(v => v.trim()).filter(v => v).forEach(variety => {
-                    for (let i = 1; i <= defaultRepeat; i++) {
-                        varieties.push({ name: variety, repeat: i, full: `${variety}-${i}` });
-                    }
+        // 입력 방식 전환
+        document.querySelectorAll('input[name="input-type"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                document.querySelectorAll('.input-panel').forEach(panel => {
+                    panel.classList.remove('active');
                 });
-            }
-            if (excelData && excelData.length > 0) {
-                excelData.forEach(row => {
-                    const variety = row['품종명'] || row['Variety'] || row['variety'] || row['품종'];
-                    const repeat = parseInt(row['반복수'] || row['Repeat'] || row['repeat']) || 3;
-                    if (variety) {
-                        for (let i = 1; i <= repeat; i++) {
-                            varieties.push({ name: variety, repeat: i, full: `${variety}-${i}` });
-                        }
-                    }
-                });
-            }
-            if (varieties.length === 0) {
-                alert('품종을 입력해주세요.');
-                return;
-            }
-            updateVarietyList();
-            alert(`${varieties.length}개의 품종 목록이 생성되었습니다.`);
-        }
-
-        function updateVarietyList() {
-            const output = document.getElementById('listOutput');
-            if (varieties.length === 0) {
-                output.innerHTML = '<div class="output-empty">품종을 입력하거나 엑셀 파일을 업로드한 후<br>\'목록 생성\' 버튼을 클릭하세요</div>';
-                return;
-            }
-            let html = '<div class="variety-list">';
-            varieties.forEach(v => html += `<div class="variety-item">${v.full}</div>`);
-            html += '</div>';
-            output.innerHTML = html;
-        }
-
-        function handleExcelUpload(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-            const label = document.getElementById('excelLabel');
-            const fileSize = (file.size / 1024).toFixed(1);
-            label.innerHTML = `<div style="color: #1976d2; font-weight: bold;">📄 ${file.name}</div><small style="color: #666;">${fileSize} KB 업로드됨</small>`;
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    const data = new Uint8Array(e.target.result);
-                    const workbook = XLSX.read(data, {type: 'array'});
-                    const sheet = workbook.Sheets[workbook.SheetNames[0]];
-                    excelData = XLSX.utils.sheet_to_json(sheet);
-                    alert('엑셀 파일이 로드되었습니다. "품종 목록 생성" 버튼을 클릭하세요.');
-                } catch (error) {
-                    alert('엑셀 파일 읽기 오류: ' + error.message);
-                    excelData = null;
-                }
-            };
-            reader.readAsArrayBuffer(file);
-        }
-
-        function downloadListTemplate() {
-            const wb = XLSX.utils.book_new();
-            const data = [
-                ['품종명', '반복수', '', '📌 입력 방법'],
-                ['한아름', '3', '', '• 품종명: 조사할 품종 이름을 입력하세요'],
-                ['새일미', '3', '', '• 반복수: 각 품종을 몇 번 반복할지 숫자 입력'],
-                ['삼광', '5', '', ''],
-                ['참동진', '3', '', '💡 예시'],
-                ['신동진', '4', '', '품종명: 한아름 / 반복수: 3'],
-                ['', '', '', '  → 결과: 한아름-1, 한아름-2, 한아름-3']
-            ];
-            const ws = XLSX.utils.aoa_to_sheet(data);
-            ws['!cols'] = [{ wch: 18 }, { wch: 12 }, { wch: 2 }, { wch: 45 }];
-            XLSX.utils.book_append_sheet(wb, ws, '품종목록');
-            XLSX.writeFile(wb, '품종목록_템플릿.xlsx');
-        }
-
-        function copyListToClipboard() {
-            if (varieties.length === 0) {
-                alert('복사할 품종 목록이 없습니다.');
-                return;
-            }
-            const text = varieties.map(v => v.full).join('\n');
-            navigator.clipboard.writeText(text).then(() => {
-                alert('품종 목록이 클립보드에 복사되었습니다.');
-            });
-        }
-
-        function downloadListExcel() {
-            if (varieties.length === 0) {
-                alert('다운로드할 품종 목록이 없습니다.');
-                return;
-            }
-            const wb = XLSX.utils.book_new();
-            const data = [['번호', '품종명', '반복', '전체명']];
-            varieties.forEach((v, i) => {
-                data.push([i + 1, v.name, v.repeat, v.full]);
-            });
-            const ws = XLSX.utils.aoa_to_sheet(data);
-            XLSX.utils.book_append_sheet(wb, ws, '품종목록');
-            XLSX.writeFile(wb, '품종목록_' + getDateString() + '.xlsx');
-        }
-
-        function downloadListCSV() {
-            if (varieties.length === 0) {
-                alert('다운로드할 품종 목록이 없습니다.');
-                return;
-            }
-            let csv = '번호,품종명,반복,전체명\n';
-            varieties.forEach((v, i) => {
-                csv += `${i + 1},${v.name},${v.repeat},${v.full}\n`;
-            });
-            const blob = new Blob([csv], { type: 'text/csv' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = '품종목록_' + getDateString() + '.csv';
-            a.click();
-        }
-
-        function clearInputs() {
-            document.getElementById('bulkInput').value = '';
-            document.getElementById('varietyInputs').innerHTML = '';
-            for (let i = 0; i < 3; i++) addInputRow();
-            excelData = null;
-            document.getElementById('excelFile').value = '';
-            document.getElementById('excelLabel').innerHTML = '📂 클릭하여 파일 선택<br><small>또는 파일을 여기에 드래그</small>';
-        }
-
-        function clearListOutput() {
-            varieties = [];
-            updateVarietyList();
-        }
-
-        // ========== 생육조사 양식 기능 ==========
-        
-        function updateSurveyItems() {
-            const surveyType = document.getElementById('surveyType').value;
-            const customItems = document.getElementById('customSurveyItems');
-            const conversionSection = document.getElementById('conversionSection');
-            if (surveyType === 'custom') {
-                customItems.style.display = 'block';
-                conversionSection.style.display = 'none';
-            } else {
-                customItems.style.display = 'none';
-                conversionSection.style.display = 'block';
-                setupConversionItems(surveyType);
-            }
-        }
-
-        function setupConversionItems(surveyType) {
-            const items = getSurveyItems(surveyType);
-            const container = document.getElementById('conversionItems');
-            let html = '';
-            items.forEach((item, index) => {
-                html += `
-                    <div class="conversion-item">
-                        <label>
-                            <input type="checkbox" id="conv_${index}" onchange="updateConversion(${index})">
-                            ${item}
-                        </label>
-                        <input type="number" id="mult_${index}" placeholder="배수" step="0.1" min="0" 
-                               onchange="updateConversion(${index})" disabled>
-                        <select id="formula_${index}" onchange="updateConversion(${index})" disabled>
-                            <option value="divide">나누기 (÷)</option>
-                            <option value="multiply">곱하기 (×)</option>
-                        </select>
-                        <span class="formula-display" id="formula_display_${index}"></span>
-                    </div>
-                `;
-            });
-            container.innerHTML = html;
-        }
-
-        function updateConversion(index) {
-            const checkbox = document.getElementById(`conv_${index}`);
-            const multiplier = document.getElementById(`mult_${index}`);
-            const formula = document.getElementById(`formula_${index}`);
-            const display = document.getElementById(`formula_display_${index}`);
-            multiplier.disabled = !checkbox.checked;
-            formula.disabled = !checkbox.checked;
-            if (checkbox.checked) {
-                const multValue = parseFloat(multiplier.value) || 1;
-                const operation = formula.value;
-                conversionSettings[index] = {
-                    enabled: true,
-                    multiplier: multValue,
-                    operation: operation
-                };
-                const symbol = operation === 'multiply' ? '×' : '÷';
-                display.textContent = `원래값 = 입력값 ${symbol} ${multValue}`;
-                const table = document.getElementById('dataTable');
-                if (table) generateTable();
-            } else {
-                delete conversionSettings[index];
-                display.textContent = '';
-                const table = document.getElementById('dataTable');
-                if (table) generateTable();
-            }
-        }
-
-        function getSurveyItems(type) {
-            switch(type) {
-                case 'basic':
-                    return ['간장(cm)', '수장(cm)', '수수'];
-                case 'heading':
-                    return ['간장(cm)', '수장(cm)', '수수', '출수기(월.일)'];
-                case 'yield':
-                    return ['수수', '1수영화수', '등숙률(%)', '천립중(g)', '수량(kg/10a)'];
-                case 'quality':
-                    return ['현미장(mm)', '현미폭(mm)', '장폭비', '단백질(%)', '아밀로스(%)'];
-                case 'full':
-                    return ['간장(cm)', '수장(cm)', '수수', '출수기(월.일)', '1수영화수', 
-                           '등숙률(%)', '천립중(g)', '수량(kg/10a)', '현미장(mm)', 
-                           '현미폭(mm)', '장폭비', '단백질(%)', '아밀로스(%)'];
-                case 'custom':
-                    const customText = document.getElementById('customItems').value;
-                    return customText.split('\n').map(item => item.trim()).filter(item => item);
-                default:
-                    return ['간장(cm)', '수장(cm)', '수수'];
-            }
-        }
-
-        function loadFromListTab() {
-            if (!varieties || varieties.length === 0) {
-                alert('먼저 품종목록 탭에서 품종을 생성해주세요.');
-                return;
-            }
-            const uniqueVarieties = [];
-            const seen = new Set();
-            varieties.forEach(v => {
-                const varietyName = v.name || v.full?.split('-')[0] || v;
-                if (varietyName && !seen.has(varietyName)) {
-                    seen.add(varietyName);
-                    uniqueVarieties.push(varietyName);
-                }
-            });
-            if (uniqueVarieties.length > 0) {
-                document.getElementById('surveyVarieties').value = uniqueVarieties.join('\n');
-                alert('품종목록에서 품종을 가져왔습니다.');
-            } else {
-                alert('가져올 수 있는 품종이 없습니다.');
-            }
-        }
-
-        function generateTable() {
-            const varietiesText = document.getElementById('surveyVarieties').value.trim();
-            const repeatCount = parseInt(document.getElementById('repeatCount').value);
-            const surveyType = document.getElementById('surveyType').value;
-            if (!varietiesText) {
-                alert('조사할 품종을 입력해주세요.');
-                return;
-            }
-            if (!repeatCount || repeatCount < 1) {
-                alert('반복 수를 입력해주세요.');
-                return;
-            }
-            const varietyList = varietiesText.split('\n').map(v => v.trim()).filter(v => v);
-            surveyItems = getSurveyItems(surveyType);
-            if (surveyItems.length === 0) {
-                alert('조사 항목을 설정해주세요.');
-                return;
-            }
-            const hasConversion = Object.keys(conversionSettings).length > 0;
-            let html = '<table id="dataTable">';
-            html += '<thead><tr>';
-            html += '<th>품종</th>';
-            html += '<th>반복</th>';
-            surveyItems.forEach((item, idx) => {
-                html += `<th>${item}</th>`;
-                if (conversionSettings[idx] && conversionSettings[idx].enabled) {
-                    const mult = conversionSettings[idx].multiplier;
-                    const op = conversionSettings[idx].operation === 'multiply' ? '×' : '÷';
-                    html += `<th style="background-color: #e8f4ff;">${item}<br>(환산 ${op}${mult})</th>`;
-                }
-            });
-            html += '</tr></thead><tbody>';
-            varietyList.forEach((variety, vIdx) => {
-                for (let r = 1; r <= repeatCount; r++) {
-                    const isLastRepeat = r === repeatCount;
-                    const isLastVariety = vIdx === varietyList.length - 1;
-                    const borderClass = !isLastVariety && isLastRepeat ? 'thick-bottom-border' : '';
-                    html += `<tr class="${borderClass}">`;
-                    html += `<td style="font-weight: bold;">${variety}</td>`;
-                    html += `<td style="text-align: center;">${r}</td>`;
-                    surveyItems.forEach((item, iIdx) => {
-                        const cellId = `cell_${vIdx}_${iIdx}_${r-1}`;
-                        html += `<td><input type="number" id="${cellId}" step="0.01" 
-                                onchange="updateDataWithConversion(${vIdx}, ${iIdx}, ${r-1})"></td>`;
-                        if (conversionSettings[iIdx] && conversionSettings[iIdx].enabled) {
-                            html += `<td class="converted-value" id="conv_${vIdx}_${iIdx}_${r-1}" style="background-color: #f5fbff; font-weight: bold; color: #0066cc;">-</td>`;
-                        }
-                    });
-                    html += '</tr>';
-                }
-            });
-            html += '</tbody></table>';
-            if (hasConversion) {
-                html += '<div class="alert alert-info" style="margin-top: 20px;">';
-                html += '<strong>📊 단위 변환 적용 중</strong><br>';
-                surveyItems.forEach((item, idx) => {
-                    if (conversionSettings[idx] && conversionSettings[idx].enabled) {
-                        const mult = conversionSettings[idx].multiplier;
-                        const op = conversionSettings[idx].operation;
-                        const symbol = op === 'multiply' ? '×' : '÷';
-                        html += `• ${item}: 입력값 ${symbol} ${mult} = 환산값<br>`;
-                    }
-                });
-                html += '<small>환산값은 자동으로 계산되며 파란색으로 표시됩니다.</small>';
-                html += '</div>';
-            }
-            document.getElementById('surveyTableOutput').innerHTML = html;
-            document.getElementById('surveyActions').style.display = 'flex';
-            tableData = varietyList.map(() => 
-                surveyItems.map(() => new Array(repeatCount).fill(null))
-            );
-            window.surveyVarietyList = varietyList;
-            window.surveyRepeatCount = repeatCount;
-        }
-
-        function updateDataWithConversion(varietyIdx, itemIdx, repeatIdx) {
-            const cellId = `cell_${varietyIdx}_${itemIdx}_${repeatIdx}`;
-            const input = document.getElementById(cellId);
-            if (input && input.value) {
-                const value = parseFloat(input.value);
-                if (!isNaN(value)) {
-                    tableData[varietyIdx][itemIdx][repeatIdx] = value;
-                    if (conversionSettings[itemIdx] && conversionSettings[itemIdx].enabled) {
-                        const mult = conversionSettings[itemIdx].multiplier;
-                        const op = conversionSettings[itemIdx].operation;
-                        let convertedValue;
-                        if (op === 'multiply') {
-                            convertedValue = value * mult;
-                        } else {
-                            convertedValue = value / mult;
-                        }
-                        const convCell = document.getElementById(`conv_${varietyIdx}_${itemIdx}_${repeatIdx}`);
-                        if (convCell) {
-                            convCell.textContent = convertedValue.toFixed(2);
-                        }
-                    }
-                }
-            } else {
-                tableData[varietyIdx][itemIdx][repeatIdx] = null;
-                const convCell = document.getElementById(`conv_${varietyIdx}_${itemIdx}_${repeatIdx}`);
-                if (convCell) {
-                    convCell.textContent = '-';
-                }
-            }
-        }
-
-        function calculateAllStats() {
-            document.querySelector('.nav-tab:nth-child(3)').click();
-            const select = document.getElementById('analysisItem');
-            select.innerHTML = '<option value="">항목을 선택하세요</option>';
-            if (surveyItems && surveyItems.length > 0) {
-                surveyItems.forEach((item, idx) => {
-                    const option = document.createElement('option');
-                    option.value = idx;
-                    option.textContent = item;
-                    select.appendChild(option);
-                });
-                if (surveyItems.length > 0) {
-                    select.value = 0;
-                }
-            }
-            alert('데이터 분석 탭에서 통계 분석을 실행할 수 있습니다.');
-        }
-
-        function saveSurveyData() {
-            const dataStr = JSON.stringify(tableData);
-            localStorage.setItem('surveyData', dataStr);
-            localStorage.setItem('surveyItems', JSON.stringify(surveyItems));
-            alert('데이터가 저장되었습니다.');
-        }
-
-        function downloadSurveyTemplate() {
-            const wb = XLSX.utils.book_new();
-            const repeatCount = parseInt(document.getElementById('repeatCount').value) || 3;
-            const surveyType = document.getElementById('surveyType').value;
-            const items = getSurveyItems(surveyType);
-            const headers = ['품종', '반복'];
-            items.forEach(item => {
-                headers.push(item);
-            });
-            const data = [
-                headers,
-                ['한아름', '1', ...new Array(items.length).fill('')],
-                ['한아름', '2', ...new Array(items.length).fill('')],
-                ['한아름', '3', ...new Array(items.length).fill('')],
-                ['새일미', '1', ...new Array(items.length).fill('')],
-                ['새일미', '2', ...new Array(items.length).fill('')],
-                ['새일미', '3', ...new Array(items.length).fill('')]
-            ];
-            const ws = XLSX.utils.aoa_to_sheet(data);
-            XLSX.utils.book_append_sheet(wb, ws, '생육조사');
-            XLSX.writeFile(wb, '생육조사_템플릿.xlsx');
-        }
-
-        function downloadSurveyExcel() {
-            const table = document.getElementById('dataTable');
-            if (!table) {
-                alert('다운로드할 데이터가 없습니다.');
-                return;
-            }
-            const wb = XLSX.utils.book_new();
-            const ws = XLSX.utils.table_to_sheet(table);
-            XLSX.utils.book_append_sheet(wb, ws, '생육조사');
-            XLSX.writeFile(wb, '생육조사_' + getDateString() + '.xlsx');
-        }
-
-        function downloadWithFormulas() {
-            downloadSurveyExcel();
-        }
-
-        function handleSurveyExcelUpload(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    const data = new Uint8Array(e.target.result);
-                    const workbook = XLSX.read(data, {type: 'array'});
-                    const sheet = workbook.Sheets[workbook.SheetNames[0]];
-                    const jsonData = XLSX.utils.sheet_to_json(sheet);
-                    alert('조사 데이터가 로드되었습니다.');
-                } catch (error) {
-                    alert('파일 읽기 오류: ' + error.message);
-                }
-            };
-            reader.readAsArrayBuffer(file);
-        }
-
-        function clearSurveyForm() {
-            document.getElementById('surveyVarieties').value = '';
-            document.getElementById('surveyTableOutput').innerHTML = '<div class="output-empty">조사 설정을 완료하고 \'조사표 생성\' 버튼을 클릭하세요</div>';
-            document.getElementById('surveyActions').style.display = 'none';
-            tableData = [];
-            surveyItems = [];
-        }
-
-        // ========== 데이터 분석 기능 ==========
-        
-        function handleDataUpload(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-            const label = document.getElementById('dataFileLabel');
-            const fileSize = (file.size / 1024).toFixed(1);
-            label.innerHTML = `<div style="color: #1976d2; font-weight: bold;">📄 ${file.name}</div><small style="color: #666;">${fileSize} KB 업로드됨</small>`;
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    const data = new Uint8Array(e.target.result);
-                    const workbook = XLSX.read(data, {type: 'array'});
-                    const sheet = workbook.Sheets[workbook.SheetNames[0]];
-                    const jsonData = XLSX.utils.sheet_to_json(sheet);
-                    surveyData = {};
-                    const headers = Object.keys(jsonData[0] || {});
-                    const varietyCol = headers[0];
-                    jsonData.forEach(row => {
-                        const variety = row[varietyCol];
-                        if (!variety || variety === '평균' || variety === 'Average') return;
-                        if (!surveyData[variety]) {
-                            surveyData[variety] = {};
-                        }
-                        headers.forEach(header => {
-                            if (header === varietyCol) return;
-                            if (!surveyData[variety][header]) {
-                                surveyData[variety][header] = [];
-                            }
-                            const value = parseFloat(row[header]);
-                            if (!isNaN(value)) {
-                                surveyData[variety][header].push(value);
-                            }
-                        });
-                    });
-                    const items = new Set();
-                    Object.values(surveyData).forEach(varietyData => {
-                        Object.keys(varietyData).forEach(item => items.add(item));
-                    });
-                    const itemSelect = document.getElementById('analysisItem');
-                    itemSelect.innerHTML = '<option value="">항목을 선택하세요</option>';
-                    items.forEach(item => {
-                        itemSelect.innerHTML += `<option value="${item}">${item}</option>`;
-                    });
-                    let varietyInfo = [];
-                    Object.keys(surveyData).forEach(variety => {
-                        const firstItem = Object.keys(surveyData[variety])[0];
-                        const repeatCount = surveyData[variety][firstItem]?.length || 0;
-                        if (repeatCount > 0) {
-                            varietyInfo.push(`${variety}(${repeatCount}반복)`);
-                        }
-                    });
-                    alert(`✅ 데이터 로드 완료: ${varietyInfo.join(', ')}`);
-                    if (items.size > 0) {
-                        itemSelect.selectedIndex = 1;
-                        updateAnalysis();
-                    }
-                } catch (error) {
-                    alert('데이터 파일 읽기 오류: ' + error.message);
-                    label.innerHTML = `📂 클릭하여 데이터 파일 선택<br><small>생육조사 데이터가 입력된 엑셀 파일</small>`;
-                }
-            };
-            reader.readAsArrayBuffer(file);
-        }
-
-        function runStatisticalAnalysis() {
-            const item = document.getElementById('analysisItem').value;
-            if (!item || !surveyData || Object.keys(surveyData).length === 0) {
-                alert('데이터를 업로드하고 항목을 선택하세요');
-                return;
-            }
-            const varietyData = {};
-            Object.keys(surveyData).forEach(variety => {
-                varietyData[variety] = surveyData[variety][item] || [];
-            });
-            displayBasicStats(varietyData, item);
-            performANOVA(varietyData, item);
-            performDMRT(varietyData, item);
-            updateChart();
-        }
-
-        function calculateStatistics(values) {
-            const n = values.length;
-            const mean = values.reduce((a, b) => a + b, 0) / n;
-            const variance = values.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / (n - 1);
-            const std = Math.sqrt(variance);
-            const se = std / Math.sqrt(n);
-            const cv = (std / mean) * 100;
-            const min = Math.min(...values);
-            const max = Math.max(...values);
-            const range = max - min;
-            return { n, mean, std, se, variance, cv, min, max, range, values };
-        }
-
-        function displayBasicStats(varietyData, itemName) {
-            let html = '<h4>' + itemName + ' 기초 통계량</h4>';
-            html += '<table>';
-            html += '<thead><tr>';
-            html += '<th>품종</th><th>n</th><th>평균</th><th>표준편차</th><th>표준오차</th>';
-            html += '<th>CV(%)</th><th>최소값</th><th>최대값</th>';
-            html += '</tr></thead><tbody>';
-            Object.keys(varietyData).forEach(variety => {
-                const values = varietyData[variety];
-                if (values.length > 0) {
-                    const stats = calculateStatistics(values);
-                    html += '<tr>';
-                    html += `<td><strong>${variety}</strong></td>`;
-                    html += `<td>${stats.n}</td>`;
-                    html += `<td>${stats.mean.toFixed(2)}</td>`;
-                    html += `<td>${stats.std.toFixed(2)}</td>`;
-                    html += `<td>${stats.se.toFixed(2)}</td>`;
-                    html += `<td>${stats.cv.toFixed(1)}</td>`;
-                    html += `<td>${stats.min.toFixed(2)}</td>`;
-                    html += `<td>${stats.max.toFixed(2)}</td>`;
-                    html += '</tr>';
-                }
-            });
-            html += '</tbody></table>';
-            document.getElementById('basicStatsTable').innerHTML = html;
-        }
-
-        function performANOVA(varietyData, itemName) {
-            const groups = Object.keys(varietyData);
-            const k = groups.length;
-            if (k < 2) {
-                document.getElementById('anovaResults').innerHTML = 
-                    '<div class="alert alert-warning">ANOVA를 수행하려면 최소 2개 이상의 품종이 필요합니다.</div>';
-                return;
-            }
-            let grandTotal = 0;
-            let totalN = 0;
-            groups.forEach(variety => {
-                varietyData[variety].forEach(value => {
-                    grandTotal += value;
-                    totalN++;
-                });
-            });
-            const grandMean = grandTotal / totalN;
-            let SST = 0;
-            groups.forEach(variety => {
-                varietyData[variety].forEach(value => {
-                    SST += Math.pow(value - grandMean, 2);
-                });
-            });
-            let SSB = 0;
-            groups.forEach(variety => {
-                const values = varietyData[variety];
-                if (values.length > 0) {
-                    const groupMean = values.reduce((a, b) => a + b, 0) / values.length;
-                    SSB += values.length * Math.pow(groupMean - grandMean, 2);
-                }
-            });
-            const SSW = SST - SSB;
-            const dfBetween = k - 1;
-            const dfWithin = totalN - k;
-            const dfTotal = totalN - 1;
-            const MSB = SSB / dfBetween;
-            const MSW = SSW / dfWithin;
-            const F = MSB / MSW;
-            const alpha = parseFloat(document.getElementById('significanceLevel').value);
-            const FCritical = getFCritical(dfBetween, dfWithin, alpha);
-            let html = '<h4>' + itemName + ' 분산분석표</h4>';
-            html += '<table>';
-            html += '<thead><tr>';
-            html += '<th>변동요인</th><th>제곱합(SS)</th><th>자유도(df)</th>';
-            html += '<th>평균제곱(MS)</th><th>F값</th><th>F 임계값</th><th>유의성</th>';
-            html += '</tr></thead><tbody>';
-            html += '<tr>';
-            html += '<td>처리간 (품종간)</td>';
-            html += `<td>${SSB.toFixed(2)}</td>`;
-            html += `<td>${dfBetween}</td>`;
-            html += `<td>${MSB.toFixed(2)}</td>`;
-            html += `<td>${F.toFixed(3)}</td>`;
-            html += `<td>${FCritical.toFixed(3)}</td>`;
-            html += `<td>${F > FCritical ? '**' : 'ns'}</td>`;
-            html += '</tr>';
-            html += '<tr>';
-            html += '<td>처리내 (오차)</td>';
-            html += `<td>${SSW.toFixed(2)}</td>`;
-            html += `<td>${dfWithin}</td>`;
-            html += `<td>${MSW.toFixed(2)}</td>`;
-            html += '<td>-</td>';
-            html += '<td>-</td>';
-            html += '<td>-</td>';
-            html += '</tr>';
-            html += '<tr style="font-weight: bold;">';
-            html += '<td>전체</td>';
-            html += `<td>${SST.toFixed(2)}</td>`;
-            html += `<td>${dfTotal}</td>`;
-            html += '<td>-</td>';
-            html += '<td>-</td>';
-            html += '<td>-</td>';
-            html += '<td>-</td>';
-            html += '</tr>';
-            html += '</tbody></table>';
-            if (F > FCritical) {
-                html += '<p class="alert alert-success">품종간 유의한 차이가 있습니다 (p < ' + alpha + ')</p>';
-            } else {
-                html += '<p class="alert alert-info">품종간 유의한 차이가 없습니다 (p ≥ ' + alpha + ')</p>';
-            }
-            document.getElementById('anovaResults').innerHTML = html;
-        }
-
-        function performDMRT(varietyData, itemName) {
-            const alpha = parseFloat(document.getElementById('significanceLevel').value);
-            const means = [];
-            Object.keys(varietyData).forEach(variety => {
-                const values = varietyData[variety];
-                if (values.length > 0) {
-                    const mean = values.reduce((a, b) => a + b, 0) / values.length;
-                    means.push({
-                        variety: variety,
-                        mean: mean,
-                        n: values.length,
-                        values: values
-                    });
-                }
-            });
-            means.sort((a, b) => b.mean - a.mean);
-            const groups = [];
-            means.forEach((item, idx) => {
-                let group = '';
-                if (idx === 0) {
-                    group = 'a';
+                
+                if (this.value === 'text') {
+                    document.getElementById('text-input').classList.add('active');
                 } else {
-                    const diff = means[0].mean - item.mean;
-                    const se = calculatePooledSE(varietyData);
-                    const criticalDiff = se * 2.8;
-                    if (diff > criticalDiff) {
-                        group = String.fromCharCode(97 + Math.floor(diff / criticalDiff));
-                    } else {
-                        group = 'a';
-                    }
-                }
-                groups.push({
-                    ...item,
-                    group: group
-                });
-            });
-            let html = '<h4>' + itemName + ' Duncan 다중검정 결과</h4>';
-            html += '<table>';
-            html += '<thead><tr>';
-            html += '<th>순위</th><th>품종</th><th>평균</th><th>그룹</th>';
-            html += '</tr></thead><tbody>';
-            groups.forEach((item, idx) => {
-                html += '<tr>';
-                html += `<td>${idx + 1}</td>`;
-                html += `<td><strong>${item.variety}</strong></td>`;
-                html += `<td>${item.mean.toFixed(2)}</td>`;
-                html += `<td style="font-weight: bold; color: #667eea;">${item.group}</td>`;
-                html += '</tr>';
-            });
-            html += '</tbody></table>';
-            html += '<p class="alert alert-info">같은 문자를 공유하는 품종간에는 유의한 차이가 없습니다 (α = ' + alpha + ')</p>';
-            document.getElementById('dmrtResults').innerHTML = html;
-        }
-
-        function calculatePooledSE(varietyData) {
-            let totalSS = 0;
-            let totalDF = 0;
-            Object.keys(varietyData).forEach(variety => {
-                const values = varietyData[variety];
-                if (values.length > 1) {
-                    const mean = values.reduce((a, b) => a + b, 0) / values.length;
-                    const ss = values.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0);
-                    totalSS += ss;
-                    totalDF += (values.length - 1);
+                    document.getElementById('excel-input').classList.add('active');
                 }
             });
-            const pooledVariance = totalSS / totalDF;
-            const avgN = Object.values(varietyData).reduce((sum, v) => sum + v.length, 0) / Object.keys(varietyData).length;
-            return Math.sqrt(pooledVariance / avgN);
-        }
-
-        function getFCritical(df1, df2, alpha) {
-            if (alpha === 0.05) {
-                if (df1 <= 5 && df2 >= 20) return 2.71;
-                if (df1 <= 5 && df2 >= 10) return 3.48;
-                if (df1 <= 10 && df2 >= 20) return 2.35;
-                return 3.00;
-            } else if (alpha === 0.01) {
-                if (df1 <= 5 && df2 >= 20) return 4.10;
-                if (df1 <= 5 && df2 >= 10) return 5.64;
-                return 4.50;
-            }
-            return 3.00;
-        }
-
-        function updateChart() {
-            const item = document.getElementById('analysisItem').value;
-            const chartType = document.getElementById('chartType').value;
-            const errorBarType = document.getElementById('errorBar').value;
-            if (!item || !surveyData) return;
-            const ctx = document.getElementById('analysisChart').getContext('2d');
-            if (currentChart) {
-                currentChart.destroy();
-            }
-            const varietyStats = [];
-            const labels = [];
-            Object.keys(surveyData).forEach(variety => {
-                const values = surveyData[variety][item] || [];
-                if (values.length > 0) {
-                    const stats = calculateStatistics(values);
-                    varietyStats.push(stats);
-                    labels.push(variety);
-                }
-            });
-            const means = varietyStats.map(s => s.mean);
-            const errorBars = varietyStats.map(s => {
-                switch(errorBarType) {
-                    case 'se': return s.se;
-                    case 'sd': return s.std;
-                    case 'ci95': return s.se * 1.96;
-                    default: return 0;
-                }
-            });
-            const chartConfig = {
-                type: chartType === 'box' ? 'bar' : chartType,
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: item,
-                        data: means,
-                        backgroundColor: 'rgba(102, 126, 234, 0.5)',
-                        borderColor: 'rgba(102, 126, 234, 1)',
-                        borderWidth: 2,
-                        errorBars: errorBars
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            display: true,
-                            position: 'top'
-                        },
-                        tooltip: {
-                            callbacks: {
-                                afterLabel: function(context) {
-                                    const idx = context.dataIndex;
-                                    const stats = varietyStats[idx];
-                                    return [
-                                        `n: ${stats.n}`,
-                                        `평균: ${stats.mean.toFixed(2)}`,
-                                        `표준편차: ${stats.std.toFixed(2)}`,
-                                        `CV: ${stats.cv.toFixed(1)}%`
-                                    ];
-                                }
-                            }
-                        }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            title: {
-                                display: true,
-                                text: item
-                            }
-                        },
-                        x: {
-                            title: {
-                                display: true,
-                                text: '품종'
-                            }
-                        }
-                    }
-                }
-            };
-            currentChart = new Chart(ctx, chartConfig);
-        }
-
-        function updateAnalysis() {
-            updateChart();
-        }
-
-        function downloadChart() {
-            if (!currentChart) {
-                alert('다운로드할 차트가 없습니다.');
-                return;
-            }
-            const url = currentChart.toBase64Image();
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = '통계차트_' + getDateString() + '.png';
-            a.click();
-        }
-
-        function exportAnalysisReport() {
-            if (Object.keys(analysisData).length === 0) {
-                alert('분석할 데이터가 없습니다.');
-                return;
-            }
-            const wb = XLSX.utils.book_new();
-            const summaryData = [['항목', '평균', '표준편차', 'CV(%)', '최소', '최대', '범위']];
-            Object.keys(analysisData).forEach(item => {
-                const stats = analysisData[item];
-                summaryData.push([
-                    item,
-                    stats.mean.toFixed(2),
-                    stats.std.toFixed(2),
-                    stats.cv.toFixed(2),
-                    stats.min.toFixed(2),
-                    stats.max.toFixed(2),
-                    stats.range.toFixed(2)
-                ]);
-            });
-            const ws = XLSX.utils.aoa_to_sheet(summaryData);
-            XLSX.utils.book_append_sheet(wb, ws, '통계요약');
-            XLSX.writeFile(wb, '분석보고서_' + getDateString() + '.xlsx');
-        }
-
-        // ========== 라벨 출력 기능 ==========
+        });
         
-        function updateLabelType() {
-            const labelType = document.getElementById('labelType').value;
-            if (labelType === 'display') {
-                document.getElementById('displayLabelSettings').style.display = 'block';
-                document.getElementById('barcodeLabelSettings').style.display = 'none';
-            } else {
-                document.getElementById('displayLabelSettings').style.display = 'none';
-                document.getElementById('barcodeLabelSettings').style.display = 'block';
-            }
-        }
-
-        function updateDisplaySizeInfo() {
-            const size = document.getElementById('displayLabelSize').value;
-            const recommendedSize = document.getElementById('recommendedSize');
-            const sizeInfo = {
-                small: '소형: 75mm × 40mm',
-                medium: '중형: 75mm × 50mm',
-                large: '명찰용: 150mm × 75mm'
-            };
-            recommendedSize.innerHTML = sizeInfo[size];
-            updateLabelPreview();
-        }
-
-        function handleBgImageUpload(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-            const label = event.target.nextElementSibling;
-            const fileSize = (file.size / 1024).toFixed(1);
-            label.innerHTML = `<div style="color: #1976d2; font-weight: bold;">🖼️ ${file.name}</div><small style="color: #666;">${fileSize} KB 업로드됨</small>`;
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                bgImageData = e.target.result;
-                alert('배경 이미지가 업로드되었습니다.');
-                updateLabelPreview();
-            };
-            reader.readAsDataURL(file);
-        }
-
-        function resetBgImage() {
-            bgImageData = null;
-            document.getElementById('bgImageFile').value = '';
-            updateLabelPreview();
-            alert('배경 이미지가 초기화되었습니다.');
-        }
-
-        function generateDisplayLabels() {
-            const labelSize = document.getElementById('displayLabelSize').value;
-            const layout = document.getElementById('displayLabelLayout').value;
-            const names = document.getElementById('displayNames').value.trim();
-            const info = document.getElementById('displayInfo1').value;
-            const textColor = document.getElementById('textColor').value;
-            const textBg = document.getElementById('textBg').value;
-            const imageFit = document.getElementById('imageFit').value;
-            if (!names) {
-                alert('이름을 입력해주세요.');
-                return;
-            }
-            const nameList = names.split('\n').map(n => n.trim()).filter(n => n);
-            let gridColumns = 1;
-            if (layout === '2x4') gridColumns = 2;
-            else if (layout === '2x5') gridColumns = 2;
-            let html = `<div class="label-grid" style="grid-template-columns: repeat(${gridColumns}, 1fr);">`;
-            nameList.forEach(name => {
-                let bgStyle = '';
-                if (bgImageData) {
-                    bgStyle = `background-image: url(${bgImageData}); `;
-                    switch(imageFit) {
-                        case 'cover':
-                            bgStyle += 'background-size: cover; background-position: center;';
-                            break;
-                        case 'contain':
-                            bgStyle += 'background-size: contain; background-repeat: no-repeat; background-position: center;';
-                            break;
-                        case 'stretch':
-                            bgStyle += 'background-size: 100% 100%;';
-                            break;
-                        case 'center':
-                            bgStyle += 'background-size: auto; background-position: center; background-repeat: no-repeat;';
-                            break;
-                    }
+        // 배경 이미지 업로드
+        document.getElementById('bg-image').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                if (!file.type.startsWith('image/')) {
+                    alert('이미지 파일만 업로드 가능합니다.');
+                    return;
                 }
-                let textBgClass = '';
-                if (textBg === 'white') textBgClass = 'text-bg-white';
-                else if (textBg === 'black') textBgClass = 'text-bg-black';
-                else if (textBg === 'blur') textBgClass = 'text-bg-blur';
-                if (labelSize === 'small') {
-                    let nameSize = 36;
-                    let descSize = 18;
-                    if (name.length > 5) {
-                        nameSize = Math.floor(36 * (5 / name.length));
-                        nameSize = Math.max(nameSize, 16);
-                    }
-                    if (info && info.length >= 15) {
-                        descSize = Math.floor(18 * (15 / info.length));
-                        descSize = Math.max(descSize, 8);
-                    }
-                    html += `
-                        <div class="display-label-item display-label-small" style="${bgStyle}">
-                            <div class="display-label-content">
-                                <div class="${textBgClass}">
-                                    <div class="label-name" style="color: ${textColor}; font-size: ${nameSize}pt;">
-                                        ${name}
-                                    </div>
-                                    ${info ? `<div class="label-desc" style="color: ${textColor}; font-size: ${descSize}pt;">(${info})</div>` : ''}
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                } else if (labelSize === 'medium') {
-                    let nameSize = 36;
-                    let descSize = 18;
-                    if (name.length > 5) {
-                        nameSize = Math.floor(36 * (5 / name.length));
-                        nameSize = Math.max(nameSize, 16);
-                    }
-                    if (info && info.length >= 15) {
-                        descSize = Math.floor(18 * (15 / info.length));
-                        descSize = Math.max(descSize, 8);
-                    }
-                    html += `
-                        <div class="display-label-item display-label-medium" style="${bgStyle}">
-                            <div class="display-label-content">
-                                <div class="${textBgClass}">
-                                    <div class="label-name" style="color: ${textColor}; font-size: ${nameSize}pt;">
-                                        ${name}
-                                    </div>
-                                    ${info ? `<div class="label-desc" style="color: ${textColor}; font-size: ${descSize}pt;">(${info})</div>` : ''}
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                } else if (labelSize === 'large') {
-                    let nameSize = 72;
-                    let orgSize = 24;
-                    if (name.length > 4) {
-                        nameSize = Math.floor(72 * (4 / name.length));
-                        nameSize = Math.max(nameSize, 24);
-                    }
-                    if (info && info.length > 12) {
-                        orgSize = Math.floor(24 * (12 / info.length));
-                        orgSize = Math.max(orgSize, 12);
-                    }
-                    html += `
-                        <div class="display-label-item display-label-large" style="${bgStyle}">
-                            <div class="display-label-content">
-                                <div class="${textBgClass}">
-                                    <div class="label-name" style="color: ${textColor}; font-size: ${nameSize}pt;">
-                                        ${name}
-                                    </div>
-                                    ${info ? `<div class="label-org" style="color: ${textColor}; font-size: ${orgSize}pt;">${info}</div>` : ''}
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                }
-            });
-            html += '</div>';
-            document.getElementById('labelPreview').innerHTML = html;
-            document.getElementById('labelActions').style.display = 'flex';
-        }
-
-        function updateLabelPreview() {
-            const labelType = document.getElementById('labelType').value;
-            if (varieties.length > 0) {
-                if (labelType === 'display') {
-                    generateDisplayLabels();
-                }
+                
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    backgroundImage = e.target.result;
+                    alert('배경 이미지가 로드되었습니다.');
+                };
+                reader.readAsDataURL(file);
             }
-        }
-
-        function updateLabelSpec() {
-            const spec = document.getElementById('labelSpec').value;
-            const info = document.getElementById('labelSpecInfo');
-            if (spec === '3106') {
-                info.innerHTML = `
-                    <strong>📋 폼텍 3106 라벨 규격</strong><br>
-                    • 라벨 크기: 64mm × 34mm<br>
-                    • 배열: 3열 × 8행 (A4 한 장에 24개)<br>
-                    • 여백: 위/아래 12mm, 좌/우 5mm, 열 간격 2mm
-                `;
-            } else if (spec === '3105') {
-                info.innerHTML = `
-                    <strong>📋 폼텍 3105 라벨 규격</strong><br>
-                    • 라벨 크기: 64mm × 39mm<br>
-                    • 배열: 3열 × 7행 (A4 한 장에 21개)<br>
-                    • 여백: 위/아래 12mm, 좌/우 5mm, 열 간격 2mm
-                `;
-            }
-        }
-
-        function showQRDataInput() {
-            const input = document.getElementById('qrDataInput');
-            input.style.display = input.style.display === 'none' ? 'block' : 'none';
-        }
-
-        function clearQRData() {
-            qrLabelData = [];
-            document.getElementById('qrDataText').value = '';
-            document.getElementById('qrLabelFile').value = '';
-            document.getElementById('qrLabelFile').nextElementSibling.innerHTML = `
-                📂 QR라벨 데이터 엑셀 업로드<br>
-                <small>품종 및 계통 목록이 포함된 파일</small>
-            `;
-            document.getElementById('labelPreview').innerHTML = '<div class="output-empty">라벨 설정을 완료하고 \'QR라벨 생성\' 버튼을 클릭하세요</div>';
-            document.getElementById('labelActions').style.display = 'none';
-            alert('QR라벨 데이터가 초기화되었습니다.');
-        }
-
-        function downloadQRTemplate() {
-            const wb = XLSX.utils.book_new();
-            const data = [
-                ['연도', '실험실', '시험번호', '품종 및 계통'],
-                ['2024', '1', '001', '한아름'],
-                ['2024', '1', '001', '새일미'],
-                ['2024', '2', '000001', '삼광'],
-                ['2024', '2', '12345', '참동진'],
-                ['2024', '3', '999', '신동진']
-            ];
-            const ws = XLSX.utils.aoa_to_sheet(data);
-            ws['!cols'] = [{ wch: 10 }, { wch: 10 }, { wch: 12 }, { wch: 20 }];
-            XLSX.utils.book_append_sheet(wb, ws, 'QR라벨데이터');
-            XLSX.writeFile(wb, 'QR라벨_템플릿.xlsx');
-        }
-
-        function handleQRLabelUpload(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-            const label = event.target.nextElementSibling;
-            const fileSize = (file.size / 1024).toFixed(1);
-            label.innerHTML = `<div style="color: #1976d2; font-weight: bold;">📄 ${file.name}</div><small style="color: #666;">${fileSize} KB 업로드됨</small>`;
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                try {
+        });
+        
+        // 엑셀 파일 읽기
+        document.getElementById('excel-file').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
                     const data = new Uint8Array(e.target.result);
                     const workbook = XLSX.read(data, {type: 'array'});
-                    const sheet = workbook.Sheets[workbook.SheetNames[0]];
-                    const jsonData = XLSX.utils.sheet_to_json(sheet);
-                    qrLabelData = [];
+                    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                    const jsonData = XLSX.utils.sheet_to_json(firstSheet, {header: 1});
+                    
+                    // 데이터를 배열로 저장
+                    excelData = [];
+                    let textData = '';
+                    
                     jsonData.forEach((row, index) => {
-                        const year = String(row['연도'] || '2024');
-                        const lab = String(row['실험실'] || '1');
-                        const testNum = String(row['시험번호'] || '');
-                        const variety = row['품종 및 계통'] || row['품종'] || '';
-                        if (variety) {
-                            const paddedTestNum = testNum.padStart(6, '0').substring(0, 6);
-                            const sampleNumber = year + '0' + lab + paddedTestNum;
-                            qrLabelData.push({
-                                sampleNumber: sampleNumber,
-                                testNumber: testNum,
-                                variety: variety
+                        if (index === 0 && row[0] === '시료번호') {
+                            return;
+                        }
+                        if (row[0]) {
+                            const sampleNum = String(row[0]).trim();
+                            const variety = row[1] ? String(row[1]).trim() : '';
+                            excelData.push({
+                                sampleNumber: sampleNum,
+                                varietyName: variety
                             });
+                            textData += `${sampleNum},${variety}\n`;
                         }
                     });
-                    alert(`${qrLabelData.length}개의 라벨 데이터를 로드했습니다.`);
-                } catch (error) {
-                    alert('엑셀 파일 읽기 오류: ' + error.message);
+                    
+                    // 텍스트 영역에도 표시 (확인용)
+                    document.getElementById('text-data').value = textData;
+                    alert(`엑셀 데이터가 로드되었습니다. (${excelData.length}개 항목)\n라벨 생성 버튼을 클릭하세요.`);
+                };
+                reader.readAsArrayBuffer(file);
+            }
+        });
+        
+        // 절취선 표시 체크박스 이벤트 리스너
+        document.getElementById('show-cut-lines').addEventListener('change', function() {
+            const labels = document.querySelectorAll('.label');
+            labels.forEach(label => {
+                if (this.checked) {
+                    label.classList.remove('no-cut-lines');
+                } else {
+                    label.classList.add('no-cut-lines');
                 }
-            };
-            reader.readAsArrayBuffer(file);
-        }
-
-        function updateSampleNumberFormat() {
-            const year = document.getElementById('sampleYear').value || '2024';
-            const lab = document.getElementById('labCode').value || '1';
-            const testNum = document.getElementById('testNumberInput').value || '';
-            const paddedTestNum = testNum.padStart(6, '0').substring(0, 6);
-            const sampleNumber = year + '0' + lab + paddedTestNum;
-            const displayFormat = `${year} 0 ${lab} ${paddedTestNum}`;
-            document.getElementById('sampleFormatExample').textContent = displayFormat;
-            return sampleNumber;
-        }
-
-        function generateQRLabels() {
-            const directInput = document.getElementById('qrDataText').value.trim();
-            if (directInput && qrLabelData.length === 0) {
-                const lines = directInput.split('\n').map(line => line.trim()).filter(line => line);
-                qrLabelData = [];
-                const year = document.getElementById('sampleYear').value || '2024';
-                const lab = document.getElementById('labCode').value || '1';
-                const testNum = document.getElementById('testNumberInput').value || '001';
-                lines.forEach((variety, index) => {
-                    if (variety) {
-                        const paddedTestNum = testNum.padStart(6, '0').substring(0, 6);
-                        const sampleNumber = year + '0' + lab + paddedTestNum;
-                        qrLabelData.push({
-                            sampleNumber: sampleNumber,
-                            testNumber: testNum,
-                            variety: variety
-                        });
-                    }
-                });
+            });
+        });
+        
+        // 텍스트 크기 자동 조정 - 최소 크기 제한 없음
+        function adjustTextToFitOneLine(element, maxWidth, maxSize) {
+            let fontSize = maxSize;
+            element.style.fontSize = fontSize + 'pt';
+            
+            const testSpan = document.createElement('span');
+            testSpan.style.position = 'absolute';
+            testSpan.style.visibility = 'hidden';
+            testSpan.style.whiteSpace = 'nowrap';
+            testSpan.style.fontFamily = 'NanumSquareEB';
+            testSpan.style.fontWeight = element.style.fontWeight || 'bold';
+            testSpan.textContent = element.textContent;
+            document.body.appendChild(testSpan);
+            
+            // 최소 1pt까지 계속 줄임
+            while (fontSize > 1) {
+                testSpan.style.fontSize = fontSize + 'pt';
+                if (testSpan.offsetWidth <= maxWidth) {
+                    break;
+                }
+                fontSize -= 0.5;
             }
-            if (qrLabelData.length === 0) {
-                alert('품종 데이터를 입력하거나 엑셀 파일을 업로드해주세요.');
-                return;
-            }
-            const spec = document.getElementById('labelSpec').value;
-            const isLarge = spec === '3105';
-            let html = '<div class="barcode-label-container">';
-            if (isLarge) {
-                html += '<div class="barcode-label-grid-21">';
+            
+            document.body.removeChild(testSpan);
+            element.style.fontSize = fontSize + 'pt';
+            
+            return fontSize;
+        }
+        
+        // 라벨 생성
+        function generateLabels() {
+            let data = [];
+            
+            // 현재 선택된 입력 방식 확인
+            const inputType = document.querySelector('input[name="input-type"]:checked').value;
+            
+            if (inputType === 'excel' && excelData.length > 0) {
+                // 엑셀 데이터 사용
+                data = excelData;
             } else {
-                html += '<div class="barcode-label-grid">';
-            }
-            qrLabelData.forEach((data, idx) => {
-                let testNumSize = 18;
-                if (data.testNumber.length > 4) {
-                    testNumSize = Math.floor(18 * (4 / data.testNumber.length));
-                    testNumSize = Math.max(testNumSize, 12);
-                }
-                let varietySize = 9;
-                if (data.variety.length > 10) {
-                    varietySize = Math.floor(9 * (10 / data.variety.length));
-                    varietySize = Math.max(varietySize, 6);
-                }
-                html += `
-                    <div class="qr-label-item ${isLarge ? 'qr-label-item-39' : ''}">
-                        <div class="qr-label-left">
-                            <div id="qr-code-${idx}" class="qr-code-container"></div>
-                        </div>
-                        <div class="qr-label-right">
-                            <div class="qr-test-number" style="font-size: ${testNumSize}pt;">${data.testNumber}</div>
-                            <div class="qr-variety-name" style="font-size: ${varietySize}pt;">${data.variety}</div>
-                            <div class="qr-sample-number">${data.sampleNumber}</div>
-                        </div>
-                    </div>
-                `;
-            });
-            const maxLabels = isLarge ? 21 : 24;
-            const remaining = maxLabels - (qrLabelData.length % maxLabels);
-            if (remaining < maxLabels) {
-                for (let i = 0; i < remaining; i++) {
-                    html += `<div class="qr-label-item ${isLarge ? 'qr-label-item-39' : ''}" style="border: 1px dashed #ddd;"></div>`;
-                }
-            }
-            html += '</div></div>';
-            document.getElementById('labelPreview').innerHTML = html;
-            setTimeout(() => {
-                qrLabelData.forEach((data, idx) => {
-                    const qrElement = document.getElementById(`qr-code-${idx}`);
-                    if (qrElement) {
-                        qrElement.innerHTML = '';
-                        new QRCode(qrElement, {
-                            text: data.sampleNumber,
-                            width: 75,
-                            height: 75,
-                            typeNumber: 0,
-                            correctLevel: QRCode.CorrectLevel.M,
-                            colorDark: "#000000",
-                            colorLight: "#ffffff"
+                // 텍스트 데이터 사용
+                const textData = document.getElementById('text-data').value;
+                const lines = textData.trim().split('\n');
+                
+                lines.forEach(line => {
+                    const parts = line.split(',');
+                    if (parts.length >= 1 && parts[0].trim()) {
+                        data.push({
+                            sampleNumber: parts[0].trim(),
+                            varietyName: parts[1] ? parts[1].trim() : ''
                         });
                     }
                 });
-            }, 100);
-            document.getElementById('labelActions').style.display = 'flex';
-            alert('QR라벨이 생성되었습니다.');
-        }
-
-        function printLabels() {
-            window.print();
-        }
-
-        function downloadLabelsPDF() {
-            alert('PDF 다운로드 기능은 서버 환경에서 구현됩니다.\n현재는 인쇄 기능을 사용해주세요.');
-        }
-
-        function downloadLabelsExcel() {
-            if (varieties.length === 0) {
-                alert('다운로드할 라벨이 없습니다.');
+            }
+            
+            if (data.length === 0) {
+                alert('데이터를 입력해주세요.');
                 return;
             }
-            const wb = XLSX.utils.book_new();
-            const info1 = document.getElementById('displayInfo1').value;
-            const data = [['품종', '추가정보']];
-            varieties.forEach(v => {
-                data.push([v.full, info1]);
-            });
-            const ws = XLSX.utils.aoa_to_sheet(data);
-            XLSX.utils.book_append_sheet(wb, ws, '라벨');
-            XLSX.writeFile(wb, '라벨_' + getDateString() + '.xlsx');
-        }
-
-        // ========== 유틸리티 함수 ==========
-
-        function getDateString() {
-            const now = new Date();
-            return now.getFullYear() + 
-                   String(now.getMonth() + 1).padStart(2, '0') + 
-                   String(now.getDate()).padStart(2, '0');
-        }
-
-        function getMedian(values) {
-            const sorted = values.slice().sort((a, b) => a - b);
-            const middle = Math.floor(sorted.length / 2);
-            if (sorted.length % 2 === 0) {
-                return (sorted[middle - 1] + sorted[middle]) / 2;
+            
+            // 선택된 라벨 크기 가져오기
+            const selectedSize = document.querySelector('input[name="label-size"]:checked').value;
+            const isSmallSize = selectedSize === '40mm';
+            const isLargeSize = selectedSize === '75mm';
+            
+            // 절취선 표시 여부 확인
+            const showCutLines = document.getElementById('show-cut-lines').checked;
+            
+            // 기존 컨텐츠 초기화
+            const previewContainer = document.getElementById('preview');
+            previewContainer.innerHTML = '';
+            
+            // 페이지당 라벨 수 계산
+            let labelsPerPage;
+            if (isLargeSize) {
+                labelsPerPage = 3; // 15cm x 7.5cm는 A4에 세로로 3개 (297mm / 75mm ≈ 3.9)
+            } else if (isSmallSize) {
+                labelsPerPage = 12; // 7cm x 4cm는 가로 2개, 세로 6개
+            } else {
+                labelsPerPage = 10; // 7cm x 5cm는 가로 2개, 세로 5개
             }
-            return sorted[middle];
+            
+            const totalPages = Math.ceil(data.length / labelsPerPage);
+            
+            for (let page = 0; page < totalPages; page++) {
+                const pageDiv = document.createElement('div');
+                pageDiv.className = 'page';
+                
+                const startIdx = page * labelsPerPage;
+                const endIdx = Math.min(startIdx + labelsPerPage, data.length);
+                
+                for (let i = startIdx; i < endIdx; i++) {
+                    const label = document.createElement('div');
+                    label.className = 'label';
+                    
+                    if (isSmallSize) {
+                        label.classList.add('size-40mm');
+                    } else if (isLargeSize) {
+                        label.classList.add('size-75mm');
+                    }
+                    
+                    // 절취선 표시 여부 적용
+                    if (!showCutLines) {
+                        label.classList.add('no-cut-lines');
+                    }
+                    
+                    // 배경 이미지가 있으면 적용
+                    if (backgroundImage) {
+                        label.style.backgroundImage = `url(${backgroundImage})`;
+                        label.style.backgroundSize = '100% 100%';
+                    }
+                    
+                    const content = document.createElement('div');
+                    content.className = 'label-content';
+                    
+                    const sampleNumber = document.createElement('div');
+                    sampleNumber.className = 'sample-number';
+                    
+                    // 대형 라벨의 경우 시료번호만 표시 (품종명 제외)
+                    if (isLargeSize) {
+                        sampleNumber.textContent = data[i].sampleNumber;
+                    } else {
+                        sampleNumber.textContent = data[i].sampleNumber;
+                    }
+                    
+                    // 4cm일 경우 시료번호 위치 조정
+                    if (isSmallSize) {
+                        sampleNumber.style.top = '12mm'; // 1.2cm
+                    }
+                    
+                    content.appendChild(sampleNumber);
+                    
+                    // 대형 라벨이 아닌 경우에만 품종명 추가
+                    if (!isLargeSize) {
+                        const varietyName = document.createElement('div');
+                        varietyName.className = 'variety-name';
+                        if (data[i].varietyName) {
+                            varietyName.textContent = `(${data[i].varietyName})`;
+                        }
+                        
+                        // 4cm일 경우 품종명 위치 조정
+                        if (isSmallSize) {
+                            varietyName.style.top = '20mm'; // 2cm
+                        }
+                        
+                        content.appendChild(varietyName);
+                    }
+                    
+                    label.appendChild(content);
+                    pageDiv.appendChild(label);
+                    
+                    // 텍스트 크기 조정
+                    setTimeout(() => {
+                        if (isLargeSize) {
+                            // 대형 라벨: 양옆 2cm 여백 고려 (150mm - 40mm = 110mm)
+                            // 1mm 여백 추가로 남기기 (110mm - 2mm = 108mm)
+                            const maxWidth = 108 * 3.78; // 108mm를 픽셀로 변환
+                            adjustTextToFitOneLine(sampleNumber, maxWidth, 60);
+                        } else {
+                            // 기존 라벨: 좌우 각 5mm 여백 고려
+                            const maxWidth = 60 * 3.78; // 60mm를 픽셀로 변환
+                            adjustTextToFitOneLine(sampleNumber, maxWidth, 24);
+                            
+                            // 품종명이 있는 경우
+                            const varietyElement = label.querySelector('.variety-name');
+                            if (varietyElement && data[i].varietyName) {
+                                adjustTextToFitOneLine(varietyElement, maxWidth, 24);
+                            }
+                        }
+                    }, 10);
+                }
+                
+                previewContainer.appendChild(pageDiv);
+            }
+            
+            let sizeText;
+            if (isLargeSize) {
+                sizeText = '15cm × 7.5cm (대형)';
+            } else if (isSmallSize) {
+                sizeText = '7cm × 4cm';
+            } else {
+                sizeText = '7cm × 5cm';
+            }
+            
+            const cutLineText = showCutLines ? '(절취선 표시)' : '(절취선 없음)';
+            alert(`총 ${data.length}개의 라벨이 생성되었습니다.\n${totalPages} 페이지, ${sizeText} ${cutLineText}`);
         }
+        
+        // 엑셀 템플릿 다운로드
+        function downloadTemplate() {
+            const ws_data = [
+                ['시료번호', '품종명'],
+                ['25301', '남평'],
+                ['25303', '영호진미'],
+                ['25304', '삼광'],
+                ['15302', '한아름4호'],
+                ['45301', '금오'],
+                ['55302', '백옥찰']
+            ];
+            
+            const ws = XLSX.utils.aoa_to_sheet(ws_data);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "라벨데이터");
+            
+            ws['!cols'] = [
+                { wch: 15 },
+                { wch: 20 }
+            ];
+            
+            XLSX.writeFile(wb, "label_template.xlsx");
+        }
+        
+        // PDF 다운로드
+        async function downloadPDF() {
+            const pages = document.querySelectorAll('.page');
+            if (pages.length === 0) {
+                alert('먼저 라벨을 생성해주세요.');
+                return;
+            }
+            
+            try {
+                const { jsPDF } = window.jspdf;
+                const pdf = new jsPDF('p', 'mm', 'a4');
+                
+                for (let i = 0; i < pages.length; i++) {
+                    const canvas = await html2canvas(pages[i], {
+                        scale: 2,
+                        useCORS: true,
+                        logging: false,
+                        backgroundColor: '#ffffff'
+                    });
+                    
+                    const imgData = canvas.toDataURL('image/png');
+                    
+                    if (i > 0) {
+                        pdf.addPage();
+                    }
+                    
+                    pdf.addImage(imgData, 'PNG', 0, 0, 210, 297);
+                }
+                
+                const today = new Date().toISOString().split('T')[0];
+                pdf.save(`label_print_${today}.pdf`);
+                alert('PDF 다운로드가 완료되었습니다.');
+                
+            } catch (error) {
+                console.error('PDF 생성 오류:', error);
+                alert('PDF 생성 중 오류가 발생했습니다.');
+            }
+        }
+        
+        // 샘플 데이터
+        window.addEventListener('load', function() {
+            const sampleData = `25301,남평
+25303,영호진미
+25304,삼광
+25310,YR34567-2B-10-1
+25311,YR34567-2B-12-1
+25312,YR34567-2B-15-1
+15302,한아름4호
+45301,금오
+55302,백옥찰`;
+            document.getElementById('text-data').value = sampleData;
+        });
     </script>
 </body>
 </html>
